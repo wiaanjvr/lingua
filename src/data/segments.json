@@ -1,0 +1,454 @@
+[
+  {
+    "id": "1",
+    "language": "fr",
+    "level": "A1",
+    "topic": "philosophy",
+    "duration_seconds": 75,
+    "audio_url": "/audio/philosophy_intro_1.mp3",
+    "transcript": "Bonjour. Aujourd'hui, nous allons parler de la philosophie. La philosophie est l'amour de la sagesse. C'est une manière de penser sur le monde, sur nous-mêmes, et sur la vie. Beaucoup de gens pensent que la philosophie est difficile, mais ce n'est pas vrai. La philosophie commence avec une simple question : Pourquoi ?",
+    "translations": {
+      "en": "Hello. Today, we're going to talk about philosophy. Philosophy is the love of wisdom. It's a way of thinking about the world, about ourselves, and about life. Many people think philosophy is difficult, but that's not true. Philosophy starts with a simple question: Why?"
+    },
+    "key_vocabulary": [
+      "philosophie",
+      "sagesse",
+      "penser",
+      "monde",
+      "vie",
+      "question",
+      "pourquoi"
+    ],
+    "grammar_patterns": ["present tense", "article usage", "basic negation"]
+  },
+  {
+    "id": "2",
+    "language": "fr",
+    "level": "A1",
+    "topic": "fitness",
+    "duration_seconds": 68,
+    "audio_url": "/audio/fitness_basics_1.mp3",
+    "transcript": "Le corps humain est magnifique. Pour rester en bonne santé, nous devons bouger chaque jour. Marcher est simple et très bon pour le cœur. Courir développe la force. Respirer profondément calme l'esprit. Votre corps vous remercie quand vous prenez soin de lui.",
+    "translations": {
+      "en": "The human body is magnificent. To stay healthy, we must move every day. Walking is simple and very good for the heart. Running builds strength. Breathing deeply calms the mind. Your body thanks you when you take care of it."
+    },
+    "key_vocabulary": [
+      "corps",
+      "santé",
+      "bouger",
+      "marcher",
+      "courir",
+      "respirer",
+      "force"
+    ],
+    "grammar_patterns": [
+      "infinitive verbs",
+      "present tense",
+      "devoir conjugation"
+    ]
+  },
+  {
+    "id": "3",
+    "language": "fr",
+    "level": "A1",
+    "topic": "science",
+    "duration_seconds": 82,
+    "audio_url": "/audio/science_curiosity_1.mp3",
+    "transcript": "La science est une aventure. C'est observer le monde avec curiosité. Un scientifique pose des questions. Il fait des expériences pour trouver des réponses. La méthode scientifique est simple : observer, questionner, tester, apprendre. Même les enfants sont des scientifiques naturels. Ils explorent, ils découvrent, ils comprennent.",
+    "translations": {
+      "en": "Science is an adventure. It's observing the world with curiosity. A scientist asks questions. They conduct experiments to find answers. The scientific method is simple: observe, question, test, learn. Even children are natural scientists. They explore, they discover, they understand."
+    },
+    "key_vocabulary": [
+      "science",
+      "observer",
+      "curiosité",
+      "question",
+      "expérience",
+      "découvrir",
+      "comprendre"
+    ],
+    "grammar_patterns": ["present tense", "infinitives", "articles"]
+  },
+  {
+    "id": "4",
+    "language": "fr",
+    "level": "A1",
+    "topic": "cooking",
+    "duration_seconds": 70,
+    "audio_url": "/audio/cooking_basics_1.mp3",
+    "transcript": "La cuisine est un art. Chaque plat raconte une histoire. Pour cuisiner, vous avez besoin d'ingrédients frais. Les légumes, les fruits, la viande, le poisson. Couper, mélanger, cuire. C'est simple mais magique. Quand vous cuisinez avec amour, les gens goûtent votre passion.",
+    "translations": {
+      "en": "Cooking is an art. Each dish tells a story. To cook, you need fresh ingredients. Vegetables, fruits, meat, fish. Cut, mix, cook. It's simple but magical. When you cook with love, people taste your passion."
+    },
+    "key_vocabulary": [
+      "cuisine",
+      "plat",
+      "ingrédients",
+      "légumes",
+      "cuisiner",
+      "couper",
+      "passion"
+    ],
+    "grammar_patterns": ["infinitives", "articles", "avoir besoin de"]
+  },
+  {
+    "id": "5",
+    "language": "fr",
+    "level": "A1",
+    "topic": "music",
+    "duration_seconds": 65,
+    "audio_url": "/audio/music_intro_1.mp3",
+    "transcript": "La musique est universelle. Elle parle à notre âme. Un rythme, une mélodie, une harmonie. Chaque culture a sa musique. La guitare chante. Le piano pleure. La batterie frappe. Écoutez la musique autour de vous. Le vent dans les arbres. La pluie sur le toit. C'est de la musique aussi.",
+    "translations": {
+      "en": "Music is universal. It speaks to our soul. A rhythm, a melody, a harmony. Each culture has its music. The guitar sings. The piano cries. The drums beat. Listen to the music around you. The wind in the trees. The rain on the roof. That's music too."
+    },
+    "key_vocabulary": [
+      "musique",
+      "rythme",
+      "mélodie",
+      "chanter",
+      "écouter",
+      "âme",
+      "culture"
+    ],
+    "grammar_patterns": ["present tense", "articles", "possessives"]
+  },
+  {
+    "id": "6",
+    "language": "fr",
+    "level": "A1",
+    "topic": "nature",
+    "duration_seconds": 78,
+    "audio_url": "/audio/nature_intro_1.mp3",
+    "transcript": "La nature est notre maison. Les forêts produisent l'oxygène que nous respirons. Les rivières donnent l'eau que nous buvons. Le soleil réchauffe la terre. Les abeilles pollinisent les fleurs. Tout est connecté. Quand nous protégeons la nature, nous nous protégeons nous-mêmes.",
+    "translations": {
+      "en": "Nature is our home. Forests produce the oxygen we breathe. Rivers give the water we drink. The sun warms the earth. Bees pollinate flowers. Everything is connected. When we protect nature, we protect ourselves."
+    },
+    "key_vocabulary": [
+      "nature",
+      "forêts",
+      "rivières",
+      "soleil",
+      "protéger",
+      "connecté",
+      "terre"
+    ],
+    "grammar_patterns": ["present tense", "relative clauses", "reflexive verbs"]
+  },
+  {
+    "id": "7",
+    "language": "fr",
+    "level": "A1",
+    "topic": "technology",
+    "duration_seconds": 72,
+    "audio_url": "/audio/tech_intro_1.mp3",
+    "transcript": "La technologie change notre vie. Un téléphone dans votre poche connecte le monde entier. Internet permet de communiquer instantanément. Les ordinateurs résolvent des problèmes complexes. Mais la technologie est un outil. C'est nous qui décidons comment l'utiliser. Utilisez-la avec sagesse.",
+    "translations": {
+      "en": "Technology changes our lives. A phone in your pocket connects the whole world. The Internet allows instant communication. Computers solve complex problems. But technology is a tool. It's we who decide how to use it. Use it wisely."
+    },
+    "key_vocabulary": [
+      "technologie",
+      "téléphone",
+      "Internet",
+      "ordinateurs",
+      "connecter",
+      "communiquer",
+      "outil"
+    ],
+    "grammar_patterns": ["present tense", "infinitives", "imperatives"]
+  },
+  {
+    "id": "8",
+    "language": "fr",
+    "level": "A1",
+    "topic": "art",
+    "duration_seconds": 68,
+    "audio_url": "/audio/art_intro_1.mp3",
+    "transcript": "L'art exprime l'invisible. Un peintre utilise des couleurs pour montrer ses émotions. Un sculpteur transforme la pierre en beauté. L'art n'est pas seulement dans les musées. Il est partout. Dans la rue, dans votre maison, dans vos vêtements. Chacun peut créer de l'art.",
+    "translations": {
+      "en": "Art expresses the invisible. A painter uses colors to show their emotions. A sculptor transforms stone into beauty. Art is not only in museums. It's everywhere. In the street, in your home, in your clothes. Everyone can create art."
+    },
+    "key_vocabulary": [
+      "art",
+      "peintre",
+      "couleurs",
+      "émotions",
+      "créer",
+      "beauté",
+      "partout"
+    ],
+    "grammar_patterns": ["present tense", "articles", "negation"]
+  },
+  {
+    "id": "9",
+    "language": "fr",
+    "level": "A1",
+    "topic": "travel",
+    "duration_seconds": 76,
+    "audio_url": "/audio/travel_intro_1.mp3",
+    "transcript": "Voyager ouvre l'esprit. Chaque pays a sa culture, sa langue, sa nourriture. Quand vous voyagez, vous apprenez. Vous découvrez que les gens sont similaires partout. Nous voulons tous la même chose : l'amour, la sécurité, le bonheur. Les frontières sont sur les cartes, pas dans nos cœurs.",
+    "translations": {
+      "en": "Travel opens the mind. Each country has its culture, its language, its food. When you travel, you learn. You discover that people are similar everywhere. We all want the same thing: love, security, happiness. Borders are on maps, not in our hearts."
+    },
+    "key_vocabulary": [
+      "voyager",
+      "pays",
+      "culture",
+      "apprendre",
+      "découvrir",
+      "similaire",
+      "bonheur"
+    ],
+    "grammar_patterns": ["infinitives", "possessives", "negation"]
+  },
+  {
+    "id": "10",
+    "language": "fr",
+    "level": "A1",
+    "topic": "history",
+    "duration_seconds": 74,
+    "audio_url": "/audio/history_intro_1.mp3",
+    "transcript": "L'histoire nous enseigne. Le passé influence le présent. Chaque génération construit sur le travail de la précédente. Les erreurs du passé sont des leçons pour l'avenir. Étudier l'histoire, c'est comprendre qui nous sommes. C'est voir d'où nous venons et imaginer où nous allons.",
+    "translations": {
+      "en": "History teaches us. The past influences the present. Each generation builds on the work of the previous one. The mistakes of the past are lessons for the future. Studying history is understanding who we are. It's seeing where we come from and imagining where we're going."
+    },
+    "key_vocabulary": [
+      "histoire",
+      "passé",
+      "présent",
+      "génération",
+      "leçons",
+      "avenir",
+      "comprendre"
+    ],
+    "grammar_patterns": [
+      "present tense",
+      "c'est + infinitive",
+      "relative pronouns"
+    ]
+  },
+  {
+    "id": "11",
+    "language": "fr",
+    "level": "A1",
+    "topic": "family",
+    "duration_seconds": 70,
+    "audio_url": "/audio/family_intro_1.mp3",
+    "transcript": "La famille est importante. Parents, enfants, frères, sœurs. Nous partageons des repas, des rires, des souvenirs. Chaque famille est différente, mais toutes ont de l'amour. Nous prenons soin les uns des autres. La famille vous soutient dans les moments difficiles. Elle célèbre vos réussites.",
+    "translations": {
+      "en": "Family is important. Parents, children, brothers, sisters. We share meals, laughter, memories. Each family is different, but all have love. We take care of each other. Family supports you in difficult times. It celebrates your successes."
+    },
+    "key_vocabulary": [
+      "famille",
+      "parents",
+      "enfants",
+      "partager",
+      "amour",
+      "soutenir",
+      "célébrer"
+    ],
+    "grammar_patterns": ["possessives", "plural nouns", "reciprocal verbs"]
+  },
+  {
+    "id": "12",
+    "language": "fr",
+    "level": "A1",
+    "topic": "weather",
+    "duration_seconds": 66,
+    "audio_url": "/audio/weather_intro_1.mp3",
+    "transcript": "Le temps change tous les jours. Le soleil brille en été. La pluie tombe en automne. La neige couvre la terre en hiver. Le printemps apporte des fleurs. Certaines personnes aiment le chaud. D'autres préfèrent le froid. Le temps influence notre humeur et nos activités.",
+    "translations": {
+      "en": "The weather changes every day. The sun shines in summer. Rain falls in autumn. Snow covers the earth in winter. Spring brings flowers. Some people like the heat. Others prefer the cold. Weather influences our mood and activities."
+    },
+    "key_vocabulary": [
+      "temps",
+      "soleil",
+      "pluie",
+      "neige",
+      "saisons",
+      "chaud",
+      "froid"
+    ],
+    "grammar_patterns": ["present tense", "seasons", "weather vocabulary"]
+  },
+  {
+    "id": "13",
+    "language": "fr",
+    "level": "A1",
+    "topic": "sports",
+    "duration_seconds": 72,
+    "audio_url": "/audio/sports_intro_1.mp3",
+    "transcript": "Le sport est bon pour la santé. Le football développe le travail d'équipe. La natation renforce tout le corps. Le tennis améliore la coordination. Courir libère l'esprit. Chaque sport a ses avantages. L'important n'est pas de gagner, mais de participer et de s'amuser.",
+    "translations": {
+      "en": "Sports are good for health. Football develops teamwork. Swimming strengthens the whole body. Tennis improves coordination. Running frees the mind. Each sport has its advantages. The important thing is not to win, but to participate and have fun."
+    },
+    "key_vocabulary": [
+      "sport",
+      "football",
+      "natation",
+      "équipe",
+      "gagner",
+      "participer",
+      "s'amuser"
+    ],
+    "grammar_patterns": ["infinitives", "c'est...de", "reflexive verbs"]
+  },
+  {
+    "id": "14",
+    "language": "fr",
+    "level": "A1",
+    "topic": "animals",
+    "duration_seconds": 68,
+    "audio_url": "/audio/animals_intro_1.mp3",
+    "transcript": "Les animaux sont fascinants. Les chiens sont fidèles. Les chats sont indépendants. Les oiseaux volent librement. Les poissons nagent dans l'eau. Chaque animal a des capacités spéciales. Nous devons respecter tous les êtres vivants. Les animaux enrichissent notre monde.",
+    "translations": {
+      "en": "Animals are fascinating. Dogs are loyal. Cats are independent. Birds fly freely. Fish swim in water. Each animal has special abilities. We must respect all living beings. Animals enrich our world."
+    },
+    "key_vocabulary": [
+      "animaux",
+      "chiens",
+      "chats",
+      "oiseaux",
+      "voler",
+      "nager",
+      "respecter"
+    ],
+    "grammar_patterns": ["adjectives", "present tense", "devoir + infinitive"]
+  },
+  {
+    "id": "15",
+    "language": "fr",
+    "level": "A1",
+    "topic": "emotions",
+    "duration_seconds": 70,
+    "audio_url": "/audio/emotions_intro_1.mp3",
+    "transcript": "Les émotions sont naturelles. Nous ressentons la joie quand nous sommes heureux. La tristesse quand nous perdons quelque chose. La colère quand nous sommes frustrés. La peur face au danger. Toutes les émotions sont valides. Il est sain d'exprimer ce que vous ressentez.",
+    "translations": {
+      "en": "Emotions are natural. We feel joy when we're happy. Sadness when we lose something. Anger when we're frustrated. Fear in the face of danger. All emotions are valid. It's healthy to express what you feel."
+    },
+    "key_vocabulary": [
+      "émotions",
+      "joie",
+      "tristesse",
+      "colère",
+      "peur",
+      "ressentir",
+      "exprimer"
+    ],
+    "grammar_patterns": ["quand clauses", "present tense", "emotion vocabulary"]
+  },
+  {
+    "id": "16",
+    "language": "fr",
+    "level": "A2",
+    "topic": "philosophy",
+    "duration_seconds": 85,
+    "audio_url": "/audio/philosophy_stoicism_1.mp3",
+    "transcript": "Le stoïcisme est une philosophie ancienne mais toujours pertinente. Les stoïciens croyaient qu'on contrôle nos pensées, pas les événements externes. Marc Aurèle, empereur romain, pratiquait cette sagesse. Il écrivait : 'Tu as le pouvoir sur ton esprit, pas sur les événements extérieurs.' Concentrez-vous sur ce que vous pouvez changer. Acceptez ce que vous ne pouvez pas changer.",
+    "translations": {
+      "en": "Stoicism is an ancient philosophy but still relevant. The Stoics believed we control our thoughts, not external events. Marcus Aurelius, Roman emperor, practiced this wisdom. He wrote: 'You have power over your mind, not outside events.' Focus on what you can change. Accept what you cannot change."
+    },
+    "key_vocabulary": [
+      "stoïcisme",
+      "ancien",
+      "pertinent",
+      "contrôler",
+      "pensées",
+      "pouvoir",
+      "accepter"
+    ],
+    "grammar_patterns": ["imperfect tense", "passive voice", "imperatives"]
+  },
+  {
+    "id": "17",
+    "language": "fr",
+    "level": "A2",
+    "topic": "science",
+    "duration_seconds": 88,
+    "audio_url": "/audio/science_evolution_1.mp3",
+    "transcript": "L'évolution est fascinante. Charles Darwin a observé que les espèces changent au fil du temps. Les animaux s'adaptent à leur environnement. Les oiseaux développent des becs différents pour manger différentes graines. Ce processus prend des millions d'années. L'évolution explique la diversité de la vie sur Terre. Nous sommes tous connectés dans l'arbre de la vie.",
+    "translations": {
+      "en": "Evolution is fascinating. Charles Darwin observed that species change over time. Animals adapt to their environment. Birds develop different beaks to eat different seeds. This process takes millions of years. Evolution explains the diversity of life on Earth. We are all connected in the tree of life."
+    },
+    "key_vocabulary": [
+      "évolution",
+      "espèces",
+      "s'adapter",
+      "environnement",
+      "processus",
+      "diversité",
+      "connectés"
+    ],
+    "grammar_patterns": ["passé composé", "pronouns", "complex sentences"]
+  },
+  {
+    "id": "18",
+    "language": "fr",
+    "level": "A2",
+    "topic": "fitness",
+    "duration_seconds": 82,
+    "audio_url": "/audio/fitness_mindfulness_1.mp3",
+    "transcript": "La pleine conscience transforme l'exercice. Au lieu de courir en pensant au travail, soyez présent. Sentez vos pieds toucher le sol. Écoutez votre respiration. Le yoga combine mouvement et méditation. Chaque posture développe la force et la flexibilité. Mais le vrai bénéfice est mental. Quand le corps bouge consciemment, l'esprit trouve la paix.",
+    "translations": {
+      "en": "Mindfulness transforms exercise. Instead of running while thinking about work, be present. Feel your feet touching the ground. Listen to your breathing. Yoga combines movement and meditation. Each posture develops strength and flexibility. But the real benefit is mental. When the body moves consciously, the mind finds peace."
+    },
+    "key_vocabulary": [
+      "pleine conscience",
+      "présent",
+      "respiration",
+      "yoga",
+      "posture",
+      "flexibilité",
+      "consciemment"
+    ],
+    "grammar_patterns": ["imperative mood", "gerund", "comparative"]
+  },
+  {
+    "id": "19",
+    "language": "fr",
+    "level": "A2",
+    "topic": "cooking",
+    "duration_seconds": 84,
+    "audio_url": "/audio/cooking_fermentation_1.mp3",
+    "transcript": "La fermentation est une technique ancienne de préservation. Les bactéries transforment les aliments. Le pain, le fromage, le vin – tous sont fermentés. Les légumes fermentés comme la choucroute sont excellents pour la santé intestinale. Les probiotiques aident la digestion. Nos ancêtres utilisaient la fermentation bien avant qu'on comprenne la science. C'est de la tradition qui rencontre la biologie.",
+    "translations": {
+      "en": "Fermentation is an ancient preservation technique. Bacteria transform foods. Bread, cheese, wine – all are fermented. Fermented vegetables like sauerkraut are excellent for gut health. Probiotics help digestion. Our ancestors used fermentation long before we understood the science. It's tradition meeting biology."
+    },
+    "key_vocabulary": [
+      "fermentation",
+      "préservation",
+      "bactéries",
+      "fromage",
+      "santé intestinale",
+      "ancêtres",
+      "biologie"
+    ],
+    "grammar_patterns": [
+      "passive construction",
+      "avant que",
+      "relative clauses"
+    ]
+  },
+  {
+    "id": "20",
+    "language": "fr",
+    "level": "A2",
+    "topic": "technology",
+    "duration_seconds": 86,
+    "audio_url": "/audio/tech_ai_ethics_1.mp3",
+    "transcript": "L'intelligence artificielle soulève des questions éthiques importantes. Les algorithmes prennent des décisions qui affectent nos vies. Qui est responsable quand une IA fait une erreur ? Comment garantir que les systèmes soient justes et équitables ? Ces technologies peuvent améliorer le monde, mais seulement si nous les développons avec conscience et responsabilité.",
+    "translations": {
+      "en": "Artificial intelligence raises important ethical questions. Algorithms make decisions that affect our lives. Who is responsible when an AI makes a mistake? How do we ensure systems are fair and equitable? These technologies can improve the world, but only if we develop them with awareness and responsibility."
+    },
+    "key_vocabulary": [
+      "intelligence artificielle",
+      "éthiques",
+      "algorithmes",
+      "responsable",
+      "garantir",
+      "équitables",
+      "conscience"
+    ],
+    "grammar_patterns": ["interrogatives", "conditional mood", "subjunctive"]
+  }
+]

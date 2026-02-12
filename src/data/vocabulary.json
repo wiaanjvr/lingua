@@ -1,0 +1,895 @@
+{
+  "1": [
+    {
+      "id": "v1_1",
+      "word": "philosophie",
+      "definition": "Philosophy - the study of knowledge, reality, and existence",
+      "example": "La philosophie est l'amour de la sagesse.",
+      "options": ["philosophy", "science", "question", "wisdom"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v1_2",
+      "word": "sagesse",
+      "definition": "Wisdom - the quality of having experience and good judgment",
+      "example": "L'amour de la sagesse.",
+      "options": ["knowledge", "wisdom", "thinking", "world"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v1_3",
+      "word": "penser",
+      "definition": "To think - to have a particular opinion or idea",
+      "example": "Une manière de penser sur le monde.",
+      "options": ["to speak", "to know", "to think", "to ask"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v1_4",
+      "word": "monde",
+      "definition": "World - the earth and all people and things on it",
+      "example": "Penser sur le monde.",
+      "options": ["life", "world", "people", "question"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v1_5",
+      "word": "vie",
+      "definition": "Life - the condition that distinguishes living things",
+      "example": "La philosophie parle de la vie.",
+      "options": ["death", "time", "life", "love"],
+      "correctAnswer": 2
+    }
+  ],
+  "2": [
+    {
+      "id": "v2_1",
+      "word": "santé",
+      "definition": "Health - the state of being free from illness",
+      "example": "Pour rester en bonne santé.",
+      "options": ["strength", "body", "health", "heart"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v2_2",
+      "word": "bouger",
+      "definition": "To move - to change position or go from one place to another",
+      "example": "Nous devons bouger chaque jour.",
+      "options": ["to rest", "to move", "to breathe", "to thank"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v2_3",
+      "word": "force",
+      "definition": "Strength - the quality of being physically strong",
+      "example": "Courir développe la force.",
+      "options": ["calm", "mind", "strength", "body"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v2_4",
+      "word": "corps",
+      "definition": "Body - the physical structure of a person",
+      "example": "Le corps humain est magnifique.",
+      "options": ["heart", "mind", "body", "soul"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v2_5",
+      "word": "marcher",
+      "definition": "To walk - to move at a regular pace",
+      "example": "Marcher est simple.",
+      "options": ["to run", "to walk", "to jump", "to dance"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v2_6",
+      "word": "respirer",
+      "definition": "To breathe - to take air in and out",
+      "example": "Respirer profondément.",
+      "options": ["to speak", "to eat", "to breathe", "to sleep"],
+      "correctAnswer": 2
+    }
+  ],
+  "3": [
+    {
+      "id": "v3_1",
+      "word": "science",
+      "definition": "Science - the study of the physical world through observation",
+      "example": "La science est une aventure.",
+      "options": ["adventure", "science", "method", "curiosity"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v3_2",
+      "word": "observer",
+      "definition": "To observe - to watch carefully",
+      "example": "Observer le monde avec curiosité.",
+      "options": ["to ask", "to test", "to observe", "to learn"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v3_3",
+      "word": "découvrir",
+      "definition": "To discover - to find something new",
+      "example": "Ils explorent, ils découvrent.",
+      "options": ["to explore", "to understand", "to discover", "to question"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v3_4",
+      "word": "curiosité",
+      "definition": "Curiosity - a strong desire to know or learn",
+      "example": "Observer avec curiosité.",
+      "options": ["science", "curiosity", "method", "answer"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v3_5",
+      "word": "expérience",
+      "definition": "Experiment - a scientific test to discover something",
+      "example": "Il fait des expériences.",
+      "options": ["question", "method", "experiment", "answer"],
+      "correctAnswer": 2
+    }
+  ],
+  "4": [
+    {
+      "id": "v4_1",
+      "word": "cuisine",
+      "definition": "Cooking/Kitchen - the practice of preparing food",
+      "example": "La cuisine est un art.",
+      "options": ["art", "cooking", "food", "dish"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v4_2",
+      "word": "plat",
+      "definition": "Dish - a particular variety of prepared food",
+      "example": "Chaque plat raconte une histoire.",
+      "options": ["plate", "dish", "story", "ingredient"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v4_3",
+      "word": "ingrédients",
+      "definition": "Ingredients - foods used to make a dish",
+      "example": "Des ingrédients frais.",
+      "options": ["recipes", "ingredients", "vegetables", "dishes"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v4_4",
+      "word": "légumes",
+      "definition": "Vegetables - plants used as food",
+      "example": "Les légumes sont frais.",
+      "options": ["fruits", "vegetables", "meat", "fish"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v4_5",
+      "word": "cuisiner",
+      "definition": "To cook - to prepare food by heating",
+      "example": "Vous cuisinez avec amour.",
+      "options": ["to eat", "to cook", "to taste", "to cut"],
+      "correctAnswer": 1
+    }
+  ],
+  "5": [
+    {
+      "id": "v5_1",
+      "word": "musique",
+      "definition": "Music - vocal or instrumental sounds combined",
+      "example": "La musique est universelle.",
+      "options": ["music", "sound", "song", "rhythm"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v5_2",
+      "word": "rythme",
+      "definition": "Rhythm - a strong, regular repeated pattern of sound",
+      "example": "Un rythme, une mélodie.",
+      "options": ["melody", "rhythm", "harmony", "beat"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v5_3",
+      "word": "mélodie",
+      "definition": "Melody - a sequence of musical notes",
+      "example": "Un rythme, une mélodie.",
+      "options": ["rhythm", "melody", "harmony", "song"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v5_4",
+      "word": "chanter",
+      "definition": "To sing - to make musical sounds with the voice",
+      "example": "La guitare chante.",
+      "options": ["to play", "to sing", "to listen", "to dance"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v5_5",
+      "word": "écouter",
+      "definition": "To listen - to give attention to sound",
+      "example": "Écoutez la musique.",
+      "options": ["to hear", "to listen", "to speak", "to play"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v5_6",
+      "word": "âme",
+      "definition": "Soul - the spiritual part of a person",
+      "example": "Elle parle à notre âme.",
+      "options": ["heart", "soul", "mind", "body"],
+      "correctAnswer": 1
+    }
+  ],
+  "6": [
+    {
+      "id": "v6_1",
+      "word": "nature",
+      "definition": "Nature - the physical world including plants and animals",
+      "example": "La nature est notre maison.",
+      "options": ["nature", "earth", "forest", "world"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v6_2",
+      "word": "forêts",
+      "definition": "Forests - large areas covered with trees",
+      "example": "Les forêts produisent l'oxygène.",
+      "options": ["trees", "forests", "plants", "woods"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v6_3",
+      "word": "protéger",
+      "definition": "To protect - to keep safe from harm",
+      "example": "Protéger la nature.",
+      "options": ["to preserve", "to protect", "to save", "to help"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v6_4",
+      "word": "terre",
+      "definition": "Earth/Land - the planet we live on",
+      "example": "Le soleil réchauffe la terre.",
+      "options": ["sun", "earth", "water", "air"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v6_5",
+      "word": "connecté",
+      "definition": "Connected - joined or linked together",
+      "example": "Tout est connecté.",
+      "options": ["separated", "connected", "related", "linked"],
+      "correctAnswer": 1
+    }
+  ],
+  "7": [
+    {
+      "id": "v7_1",
+      "word": "technologie",
+      "definition": "Technology - the application of scientific knowledge",
+      "example": "La technologie change notre vie.",
+      "options": ["science", "technology", "innovation", "tool"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v7_2",
+      "word": "téléphone",
+      "definition": "Phone - a device for talking to people at a distance",
+      "example": "Un téléphone dans votre poche.",
+      "options": ["computer", "phone", "screen", "device"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v7_3",
+      "word": "connecter",
+      "definition": "To connect - to join or link together",
+      "example": "Connecte le monde entier.",
+      "options": ["to separate", "to connect", "to communicate", "to share"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v7_4",
+      "word": "communiquer",
+      "definition": "To communicate - to share information with others",
+      "example": "Internet permet de communiquer.",
+      "options": ["to speak", "to communicate", "to connect", "to write"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v7_5",
+      "word": "outil",
+      "definition": "Tool - a device used to carry out a function",
+      "example": "La technologie est un outil.",
+      "options": ["machine", "tool", "device", "computer"],
+      "correctAnswer": 1
+    }
+  ],
+  "8": [
+    {
+      "id": "v8_1",
+      "word": "art",
+      "definition": "Art - creative expression in visual form",
+      "example": "L'art exprime l'invisible.",
+      "options": ["art", "painting", "beauty", "expression"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v8_2",
+      "word": "peintre",
+      "definition": "Painter - an artist who paints pictures",
+      "example": "Un peintre utilise des couleurs.",
+      "options": ["artist", "painter", "sculptor", "creator"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v8_3",
+      "word": "couleurs",
+      "definition": "Colors - the property of objects that reflects light",
+      "example": "Utilise des couleurs.",
+      "options": ["paints", "colors", "brushes", "shades"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v8_4",
+      "word": "émotions",
+      "definition": "Emotions - strong feelings",
+      "example": "Montrer ses émotions.",
+      "options": ["feelings", "emotions", "thoughts", "ideas"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v8_5",
+      "word": "créer",
+      "definition": "To create - to bring into existence",
+      "example": "Créer de l'art.",
+      "options": ["to make", "to create", "to build", "to paint"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v8_6",
+      "word": "beauté",
+      "definition": "Beauty - the quality of being pleasing to the senses",
+      "example": "Transforme en beauté.",
+      "options": ["art", "beauty", "grace", "elegance"],
+      "correctAnswer": 1
+    }
+  ],
+  "9": [
+    {
+      "id": "v9_1",
+      "word": "voyager",
+      "definition": "To travel - to go from one place to another",
+      "example": "Voyager ouvre l'esprit.",
+      "options": ["to move", "to travel", "to explore", "to discover"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v9_2",
+      "word": "pays",
+      "definition": "Country - a nation with its own government",
+      "example": "Chaque pays a sa culture.",
+      "options": ["land", "country", "nation", "place"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v9_3",
+      "word": "culture",
+      "definition": "Culture - the customs and beliefs of a society",
+      "example": "Sa culture, sa langue.",
+      "options": ["tradition", "culture", "customs", "society"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v9_4",
+      "word": "apprendre",
+      "definition": "To learn - to gain knowledge or skill",
+      "example": "Vous apprenez.",
+      "options": ["to teach", "to learn", "to study", "to know"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v9_5",
+      "word": "similaire",
+      "definition": "Similar - alike but not exactly the same",
+      "example": "Les gens sont similaires.",
+      "options": ["same", "similar", "different", "equal"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v9_6",
+      "word": "bonheur",
+      "definition": "Happiness - the state of being happy",
+      "example": "L'amour, la sécurité, le bonheur.",
+      "options": ["joy", "happiness", "peace", "love"],
+      "correctAnswer": 1
+    }
+  ],
+  "10": [
+    {
+      "id": "v10_1",
+      "word": "histoire",
+      "definition": "History - the study of past events",
+      "example": "L'histoire nous enseigne.",
+      "options": ["story", "history", "past", "lesson"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v10_2",
+      "word": "passé",
+      "definition": "Past - the time before the present",
+      "example": "Le passé influence le présent.",
+      "options": ["past", "future", "present", "history"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v10_3",
+      "word": "présent",
+      "definition": "Present - the time happening now",
+      "example": "Le passé influence le présent.",
+      "options": ["past", "present", "future", "moment"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v10_4",
+      "word": "génération",
+      "definition": "Generation - people born around the same time",
+      "example": "Chaque génération construit.",
+      "options": ["generation", "age", "era", "period"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v10_5",
+      "word": "leçons",
+      "definition": "Lessons - things to be learned",
+      "example": "Des leçons pour l'avenir.",
+      "options": ["teachings", "lessons", "knowledge", "wisdom"],
+      "correctAnswer": 1
+    }
+  ],
+  "11": [
+    {
+      "id": "v11_1",
+      "word": "famille",
+      "definition": "Family - a group of related people",
+      "example": "La famille est importante.",
+      "options": ["friends", "family", "relatives", "home"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v11_2",
+      "word": "parents",
+      "definition": "Parents - mother and father",
+      "example": "Parents, enfants, frères.",
+      "options": ["relatives", "parents", "adults", "grandparents"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v11_3",
+      "word": "partager",
+      "definition": "To share - to give a portion to others",
+      "example": "Nous partageons des repas.",
+      "options": ["to give", "to share", "to divide", "to offer"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v11_4",
+      "word": "soutenir",
+      "definition": "To support - to give help or assistance",
+      "example": "La famille vous soutient.",
+      "options": ["to help", "to support", "to encourage", "to protect"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v11_5",
+      "word": "célébrer",
+      "definition": "To celebrate - to mark a special occasion",
+      "example": "Elle célèbre vos réussites.",
+      "options": ["to party", "to celebrate", "to enjoy", "to praise"],
+      "correctAnswer": 1
+    }
+  ],
+  "12": [
+    {
+      "id": "v12_1",
+      "word": "temps",
+      "definition": "Weather - atmospheric conditions",
+      "example": "Le temps change tous les jours.",
+      "options": ["time", "weather", "climate", "season"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v12_2",
+      "word": "soleil",
+      "definition": "Sun - the star at the center of our solar system",
+      "example": "Le soleil brille en été.",
+      "options": ["sun", "moon", "star", "light"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v12_3",
+      "word": "pluie",
+      "definition": "Rain - water falling from clouds",
+      "example": "La pluie tombe en automne.",
+      "options": ["snow", "rain", "water", "cloud"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v12_4",
+      "word": "neige",
+      "definition": "Snow - frozen water crystals",
+      "example": "La neige couvre la terre.",
+      "options": ["ice", "snow", "frost", "winter"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v12_5",
+      "word": "saisons",
+      "definition": "Seasons - the four divisions of the year",
+      "example": "Les quatre saisons.",
+      "options": ["months", "seasons", "years", "periods"],
+      "correctAnswer": 1
+    }
+  ],
+  "13": [
+    {
+      "id": "v13_1",
+      "word": "sport",
+      "definition": "Sport - physical activity for exercise or competition",
+      "example": "Le sport est bon pour la santé.",
+      "options": ["game", "sport", "exercise", "activity"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v13_2",
+      "word": "football",
+      "definition": "Football/Soccer - a team sport with a ball",
+      "example": "Le football développe le travail d'équipe.",
+      "options": ["basketball", "football", "tennis", "rugby"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v13_3",
+      "word": "natation",
+      "definition": "Swimming - moving through water",
+      "example": "La natation renforce le corps.",
+      "options": ["running", "swimming", "diving", "surfing"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v13_4",
+      "word": "équipe",
+      "definition": "Team - a group working together",
+      "example": "Travail d'équipe.",
+      "options": ["group", "team", "club", "squad"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v13_5",
+      "word": "gagner",
+      "definition": "To win - to be victorious",
+      "example": "L'important n'est pas de gagner.",
+      "options": ["to lose", "to win", "to play", "to compete"],
+      "correctAnswer": 1
+    }
+  ],
+  "14": [
+    {
+      "id": "v14_1",
+      "word": "animaux",
+      "definition": "Animals - living creatures",
+      "example": "Les animaux sont fascinants.",
+      "options": ["pets", "animals", "creatures", "beasts"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v14_2",
+      "word": "chiens",
+      "definition": "Dogs - domesticated canines",
+      "example": "Les chiens sont fidèles.",
+      "options": ["cats", "dogs", "pets", "animals"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v14_3",
+      "word": "chats",
+      "definition": "Cats - domesticated felines",
+      "example": "Les chats sont indépendants.",
+      "options": ["dogs", "cats", "pets", "kittens"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v14_4",
+      "word": "oiseaux",
+      "definition": "Birds - flying vertebrates with feathers",
+      "example": "Les oiseaux volent librement.",
+      "options": ["fish", "birds", "insects", "bats"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v14_5",
+      "word": "voler",
+      "definition": "To fly - to move through the air",
+      "example": "Les oiseaux volent.",
+      "options": ["to swim", "to fly", "to run", "to jump"],
+      "correctAnswer": 1
+    }
+  ],
+  "15": [
+    {
+      "id": "v15_1",
+      "word": "émotions",
+      "definition": "Emotions - strong feelings",
+      "example": "Les émotions sont naturelles.",
+      "options": ["thoughts", "emotions", "feelings", "moods"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v15_2",
+      "word": "joie",
+      "definition": "Joy - a feeling of great happiness",
+      "example": "Nous ressentons la joie.",
+      "options": ["sadness", "joy", "anger", "fear"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v15_3",
+      "word": "tristesse",
+      "definition": "Sadness - feeling of sorrow",
+      "example": "La tristesse quand nous perdons.",
+      "options": ["joy", "sadness", "anger", "fear"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v15_4",
+      "word": "colère",
+      "definition": "Anger - strong feeling of displeasure",
+      "example": "La colère quand nous sommes frustrés.",
+      "options": ["joy", "sadness", "anger", "fear"],
+      "correctAnswer": 2
+    },
+    {
+      "id": "v15_5",
+      "word": "ressentir",
+      "definition": "To feel - to experience an emotion",
+      "example": "Ressentir la joie.",
+      "options": ["to think", "to feel", "to know", "to show"],
+      "correctAnswer": 1
+    }
+  ],
+  "16": [
+    {
+      "id": "v16_1",
+      "word": "stoïcisme",
+      "definition": "Stoicism - an ancient Greek philosophy",
+      "example": "Le stoïcisme est une philosophie ancienne.",
+      "options": ["stoicism", "philosophy", "wisdom", "teaching"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v16_2",
+      "word": "ancien",
+      "definition": "Ancient/Old - from a long time ago",
+      "example": "Une philosophie ancienne.",
+      "options": ["new", "ancient", "modern", "old"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v16_3",
+      "word": "pertinent",
+      "definition": "Relevant - appropriate to current situation",
+      "example": "Toujours pertinent.",
+      "options": ["important", "relevant", "useful", "significant"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v16_4",
+      "word": "contrôler",
+      "definition": "To control - to have power over",
+      "example": "On contrôle nos pensées.",
+      "options": ["to manage", "to control", "to guide", "to direct"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v16_5",
+      "word": "pensées",
+      "definition": "Thoughts - ideas or opinions in your mind",
+      "example": "Contrôle nos pensées.",
+      "options": ["ideas", "thoughts", "feelings", "beliefs"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v16_6",
+      "word": "pouvoir",
+      "definition": "Power - the ability to influence",
+      "example": "Tu as le pouvoir.",
+      "options": ["strength", "power", "force", "ability"],
+      "correctAnswer": 1
+    }
+  ],
+  "17": [
+    {
+      "id": "v17_1",
+      "word": "évolution",
+      "definition": "Evolution - gradual development over time",
+      "example": "L'évolution est fascinante.",
+      "options": ["change", "evolution", "development", "progress"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v17_2",
+      "word": "espèces",
+      "definition": "Species - a group of living organisms",
+      "example": "Les espèces changent.",
+      "options": ["animals", "species", "creatures", "organisms"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v17_3",
+      "word": "s'adapter",
+      "definition": "To adapt - to adjust to new conditions",
+      "example": "Les animaux s'adaptent.",
+      "options": ["to change", "to adapt", "to evolve", "to adjust"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v17_4",
+      "word": "environnement",
+      "definition": "Environment - the surroundings or conditions",
+      "example": "S'adaptent à leur environnement.",
+      "options": ["habitat", "environment", "nature", "surroundings"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v17_5",
+      "word": "processus",
+      "definition": "Process - a series of actions to achieve something",
+      "example": "Ce processus prend du temps.",
+      "options": ["method", "process", "procedure", "system"],
+      "correctAnswer": 1
+    }
+  ],
+  "18": [
+    {
+      "id": "v18_1",
+      "word": "pleine conscience",
+      "definition": "Mindfulness - being fully present and aware",
+      "example": "La pleine conscience transforme.",
+      "options": ["awareness", "mindfulness", "meditation", "focus"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v18_2",
+      "word": "présent",
+      "definition": "Present - existing or happening now",
+      "example": "Soyez présent.",
+      "options": ["aware", "present", "mindful", "conscious"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v18_3",
+      "word": "yoga",
+      "definition": "Yoga - a practice combining physical and mental discipline",
+      "example": "Le yoga combine mouvement.",
+      "options": ["exercise", "yoga", "meditation", "practice"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v18_4",
+      "word": "posture",
+      "definition": "Posture - a particular position of the body",
+      "example": "Chaque posture développe.",
+      "options": ["position", "posture", "stance", "pose"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v18_5",
+      "word": "flexibilité",
+      "definition": "Flexibility - the ability to bend easily",
+      "example": "Force et flexibilité.",
+      "options": ["strength", "flexibility", "balance", "mobility"],
+      "correctAnswer": 1
+    }
+  ],
+  "19": [
+    {
+      "id": "v19_1",
+      "word": "fermentation",
+      "definition": "Fermentation - chemical breakdown by bacteria or yeast",
+      "example": "La fermentation est ancienne.",
+      "options": ["fermentation", "preservation", "cooking", "process"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "v19_2",
+      "word": "préservation",
+      "definition": "Preservation - the action of keeping something safe",
+      "example": "Technique de préservation.",
+      "options": ["preparation", "preservation", "conservation", "storage"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v19_3",
+      "word": "bactéries",
+      "definition": "Bacteria - microscopic living organisms",
+      "example": "Les bactéries transforment.",
+      "options": ["germs", "bacteria", "microbes", "organisms"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v19_4",
+      "word": "fromage",
+      "definition": "Cheese - food made from milk",
+      "example": "Le pain, le fromage.",
+      "options": ["bread", "cheese", "milk", "yogurt"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v19_5",
+      "word": "santé intestinale",
+      "definition": "Gut health - the health of the digestive system",
+      "example": "Excellents pour la santé intestinale.",
+      "options": ["health", "gut health", "digestion", "wellness"],
+      "correctAnswer": 1
+    }
+  ],
+  "20": [
+    {
+      "id": "v20_1",
+      "word": "intelligence artificielle",
+      "definition": "Artificial intelligence - computer systems that simulate human intelligence",
+      "example": "L'intelligence artificielle soulève des questions.",
+      "options": [
+        "technology",
+        "artificial intelligence",
+        "algorithms",
+        "computers"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v20_2",
+      "word": "éthiques",
+      "definition": "Ethical - relating to moral principles",
+      "example": "Questions éthiques importantes.",
+      "options": ["moral", "ethical", "important", "serious"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v20_3",
+      "word": "algorithmes",
+      "definition": "Algorithms - sets of rules for solving problems",
+      "example": "Les algorithmes prennent des décisions.",
+      "options": ["programs", "algorithms", "systems", "codes"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v20_4",
+      "word": "responsable",
+      "definition": "Responsible - having the duty to deal with something",
+      "example": "Qui est responsable?",
+      "options": ["guilty", "responsible", "accountable", "liable"],
+      "correctAnswer": 1
+    },
+    {
+      "id": "v20_5",
+      "word": "équitables",
+      "definition": "Fair/Equitable - just and impartial",
+      "example": "Justes et équitables.",
+      "options": ["equal", "fair", "just", "equitable"],
+      "correctAnswer": 3
+    },
+    {
+      "id": "v20_6",
+      "word": "conscience",
+      "definition": "Awareness/Consciousness - knowledge of something",
+      "example": "Développons avec conscience.",
+      "options": ["awareness", "knowledge", "consciousness", "understanding"],
+      "correctAnswer": 0
+    }
+  ]
+}

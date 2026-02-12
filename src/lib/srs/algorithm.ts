@@ -1,0 +1,254 @@
+/**
+ * Spaced Repetition System (SRS) Utilities
+ * Implements the SM-2 algorithm for optimal word review scheduling
+ */
+
+import { UserWord, WordRating, WordStatus } from "@/types";
+
+// SM-2 Algorithm Constants
+const INITIAL_EASINESS = 2.5;
+const MIN_EASINESS = 1.3;
+const EASINESS_BONUS = 0.1;
+const EASINESS_PENALTY_HARD = 0.15;
+const EASINESS_PENALTY_WRONG = 0.2;
+
+// Initial intervals (in days)
+const FIRST_INTERVAL = 1;
+const SECOND_INTERVAL = 6;
+
+/**
+ * Calculate next review date and update SRS parameters based on user rating
+ * Uses the SM-2 algorithm with modifications for language learning
+ */
+export function calculateNextReview(
+  currentWord: Partial<UserWord>,
+  rating: WordRating,
+): {
+  easiness_factor: number;
+  repetitions: number;
+  interval_days: number;
+  next_review: Date;
+  status: WordStatus;
+} {
+  // Initialize defaults if word is new
+  const easiness = currentWord.easiness_factor ?? INITIAL_EASINESS;
+  const reps = currentWord.repetitions ?? 0;
+  const status = currentWord.status ?? "new";
+
+  let newEasiness = easiness;
+  let newRepetitions = reps;
+  let intervalDays = 0;
+  let newStatus: WordStatus = status;
+
+  // Update easiness factor based on rating
+  if (rating >= 3) {
+    // Correct response (Good, Easy, or Perfect)
+    newEasiness =
+      easiness + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+
+    if (rating === 5) {
+      // Perfect recall gets extra bonus
+      newEasiness += EASINESS_BONUS;
+    }
+
+    newRepetitions = reps + 1;
+  } else if (rating === 2) {
+    // Hard - correct but with difficulty
+    newEasiness = Math.max(MIN_EASINESS, easiness - EASINESS_PENALTY_HARD);
+    newRepetitions = reps + 1; // Still counts as successful
+  } else {
+    // Wrong (0 or 1) - reset repetitions
+    newEasiness = Math.max(MIN_EASINESS, easiness - EASINESS_PENALTY_WRONG);
+    newRepetitions = 0;
+  }
+
+  // Ensure easiness stays in reasonable range
+  newEasiness = Math.max(MIN_EASINESS, Math.min(2.5, newEasiness));
+
+  // Calculate interval based on repetition number
+  if (rating < 2) {
+    // Failed - review again soon
+    intervalDays = 0.1; // ~2.4 hours
+    newStatus = "learning";
+  } else if (newRepetitions === 0) {
+    intervalDays = FIRST_INTERVAL;
+    newStatus = "learning";
+  } else if (newRepetitions === 1) {
+    intervalDays = SECOND_INTERVAL;
+    newStatus = "learning";
+  } else {
+    // Use SM-2 formula: I(n) = I(n-1) * EF
+    const previousInterval = currentWord.interval_days ?? SECOND_INTERVAL;
+    intervalDays = previousInterval * newEasiness;
+
+    // Update status based on performance
+    if (newRepetitions >= 8 && newEasiness >= 2.2) {
+      newStatus = "mastered";
+    } else if (newRepetitions >= 3) {
+      newStatus = "known";
+    } else {
+      newStatus = "learning";
+    }
+  }
+
+  // Calculate next review date
+  const nextReview = new Date();
+  nextReview.setTime(nextReview.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+
+  return {
+    easiness_factor: Math.round(newEasiness * 100) / 100,
+    repetitions: newRepetitions,
+    interval_days: Math.round(intervalDays * 100) / 100,
+    next_review: nextReview,
+    status: newStatus,
+  };
+}
+
+/**
+ * Determine if a word is due for review
+ */
+export function isWordDue(word: UserWord): boolean {
+  const nextReview = new Date(word.next_review);
+  const now = new Date();
+  return nextReview <= now;
+}
+
+/**
+ * Get priority score for word selection in stories
+ * Higher score = higher priority to include
+ */
+export function getWordPriority(word: UserWord): number {
+  const now = new Date();
+  const nextReview = new Date(word.next_review);
+  const daysDifference =
+    (now.getTime() - nextReview.getTime()) / (1000 * 60 * 60 * 24);
+
+  let priority = 0;
+
+  // Overdue words get highest priority
+  if (daysDifference > 0) {
+    priority += daysDifference * 10; // More overdue = higher priority
+  }
+
+  // Bonus for words in learning phase
+  if (word.status === "learning") {
+    priority += 5;
+  }
+
+  // Slight penalty for mastered words (but still review them)
+  if (word.status === "mastered") {
+    priority -= 2;
+  }
+
+  // Consider frequency rank (common words are more important)
+  if (word.frequency_rank) {
+    priority += Math.max(0, 100 - word.frequency_rank / 100);
+  }
+
+  return priority;
+}
+
+/**
+ * Filter and sort words for inclusion in a generated story
+ */
+export function selectWordsForStory(
+  knownWords: UserWord[],
+  targetCount: number,
+  prioritizeReview: boolean = true,
+): UserWord[] {
+  if (!prioritizeReview) {
+    // Random selection for variety
+    return shuffleArray(knownWords).slice(0, targetCount);
+  }
+
+  // Sort by priority (overdue words first)
+  const sortedWords = [...knownWords].sort((a, b) => {
+    const priorityA = getWordPriority(a);
+    const priorityB = getWordPriority(b);
+    return priorityB - priorityA;
+  });
+
+  // Take top priority words, but include some randomness
+  const highPriority = sortedWords.slice(0, Math.floor(targetCount * 0.7));
+  const remaining = sortedWords.slice(Math.floor(targetCount * 0.7));
+  const randomSelection = shuffleArray(remaining).slice(
+    0,
+    targetCount - highPriority.length,
+  );
+
+  return [...highPriority, ...randomSelection];
+}
+
+/**
+ * Get statistics about user's vocabulary knowledge
+ */
+export function getVocabularyStats(words: UserWord[]) {
+  const total = words.length;
+  const newCount = words.filter((w) => w.status === "new").length;
+  const learningCount = words.filter((w) => w.status === "learning").length;
+  const knownCount = words.filter((w) => w.status === "known").length;
+  const masteredCount = words.filter((w) => w.status === "mastered").length;
+  const dueCount = words.filter((w) => isWordDue(w)).length;
+
+  return {
+    total,
+    new: newCount,
+    learning: learningCount,
+    known: knownCount,
+    mastered: masteredCount,
+    dueForReview: dueCount,
+    percentageKnown:
+      total > 0 ? ((knownCount + masteredCount) / total) * 100 : 0,
+  };
+}
+
+/**
+ * Helper: Fisher-Yates shuffle algorithm
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Initialize a new word with default SRS parameters
+ */
+export function initializeNewWord(
+  word: string,
+  lemma: string,
+  language: string,
+): Partial<UserWord> {
+  return {
+    word,
+    lemma,
+    language,
+    easiness_factor: INITIAL_EASINESS,
+    repetitions: 0,
+    interval_days: 0,
+    next_review: new Date().toISOString(),
+    status: "new",
+    times_seen: 0,
+    times_rated: 0,
+    first_seen: new Date().toISOString(),
+    last_seen: new Date().toISOString(),
+  };
+}
+
+/**
+ * Estimate comprehension level based on vocabulary knowledge
+ * Returns percentage of text user should understand
+ */
+export function estimateComprehension(
+  storyWords: string[],
+  knownWords: Set<string>,
+): number {
+  const knownCount = storyWords.filter((word) =>
+    knownWords.has(word.toLowerCase()),
+  ).length;
+
+  return storyWords.length > 0 ? (knownCount / storyWords.length) * 100 : 0;
+}
