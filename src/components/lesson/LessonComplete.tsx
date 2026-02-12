@@ -111,7 +111,7 @@ export function LessonComplete({
         </Card>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
           {/* Vocabulary Stats */}
           <Card>
             <CardHeader className="pb-2">

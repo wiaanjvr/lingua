@@ -248,7 +248,7 @@ export function ConversationFeedbackPhase({
       </div>
 
       {/* Chat Area */}
-      <Card className="min-h-[400px] max-h-[500px] flex flex-col">
+      <Card className="min-h-[300px] sm:min-h-[400px] max-h-[60vh] sm:max-h-[500px] flex flex-col">
         <CardHeader className="pb-2 shrink-0">
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Conversation</span>

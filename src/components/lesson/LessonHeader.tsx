@@ -102,7 +102,7 @@ export function LessonHeader({
         </div>
 
         {/* Phase Indicators */}
-        <div className="flex items-center justify-between px-4 pb-3">
+        <div className="flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-4 pb-3 overflow-x-auto">
           {PHASE_ORDER.map((phase, index) => {
             const phaseConfig = PHASE_CONFIG[phase];
             const PhaseIcon = phaseConfig.icon;
@@ -113,7 +113,7 @@ export function LessonHeader({
               <div
                 key={phase}
                 className={cn(
-                  "flex flex-col items-center gap-1",
+                  "flex flex-col items-center gap-1 flex-shrink-0",
                   isActive && "opacity-100",
                   isCompleted && "opacity-60",
                   !isActive && !isCompleted && "opacity-30",
@@ -121,13 +121,13 @@ export function LessonHeader({
               >
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                    "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors",
                     isActive && "bg-primary text-primary-foreground",
                     isCompleted && "bg-green-500 text-white",
                     !isActive && !isCompleted && "bg-muted",
                   )}
                 >
-                  <PhaseIcon className="h-4 w-4" />
+                  <PhaseIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                 </div>
                 <span
                   className={cn(

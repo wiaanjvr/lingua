@@ -182,9 +182,9 @@ export function VerbalCheckPhase({
               <Button
                 size="lg"
                 onClick={startRecording}
-                className="h-16 w-16 rounded-full"
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full"
               >
-                <Mic className="h-6 w-6" />
+                <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
             )}
 
@@ -194,9 +194,9 @@ export function VerbalCheckPhase({
                   size="lg"
                   variant="destructive"
                   onClick={stopRecording}
-                  className="h-16 w-16 rounded-full animate-pulse"
+                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-full animate-pulse"
                 >
-                  <Square className="h-6 w-6" />
+                  <Square className="h-5 w-5 sm:h-6 sm:w-6" />
                 </Button>
 
                 {/* Recording indicator */}

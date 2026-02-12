@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +13,31 @@ import {
 import { AlertCircle } from "lucide-react";
 
 export default function AuthCodeErrorPage() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  const description = searchParams.get("description");
+
+  const getErrorMessage = () => {
+    if (error === "access_denied") {
+      return "You denied access to your account. Please try again if this was unintentional.";
+    }
+    if (error === "no_code") {
+      return "No authentication code was provided. The OAuth provider may not be configured.";
+    }
+    if (error === "code_exchange_failed") {
+      return (
+        description ||
+        "Failed to exchange the authentication code for a session."
+      );
+    }
+    if (description) {
+      return description;
+    }
+    return null;
+  };
+
+  const errorMessage = getErrorMessage();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
@@ -27,8 +53,14 @@ export default function AuthCodeErrorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {errorMessage && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive">{errorMessage}</p>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">This could happen if:</p>
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+            <li>The OAuth provider is not configured in Supabase</li>
             <li>The link has expired</li>
             <li>The link has already been used</li>
             <li>The link is invalid</li>

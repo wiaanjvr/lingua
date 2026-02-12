@@ -235,7 +235,7 @@ export function TextRevealPhase({
           </div>
 
           {/* Legend */}
-          <div className="mt-6 pt-4 border-t flex flex-wrap gap-4 text-sm">
+          <div className="mt-6 pt-4 border-t flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-amber-200 dark:bg-amber-700/50" />
               <span>New word (click to rate)</span>
@@ -254,56 +254,58 @@ export function TextRevealPhase({
 
       {/* Word Rating Modal */}
       {selectedWord && (
-        <Card className="border-primary shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl text-center">
-              How well do you know:{" "}
-              <span className="text-primary">"{selectedWord.word}"</span>?
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedWord.translation && (
-              <p className="text-center text-muted-foreground">
-                Translation: {selectedWord.translation}
-              </p>
-            )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <Card className="border-primary shadow-lg w-full max-w-md">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg sm:text-xl text-center">
+                How well do you know:{" "}
+                <span className="text-primary">"{selectedWord.word}"</span>?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedWord.translation && (
+                <p className="text-center text-muted-foreground">
+                  Translation: {selectedWord.translation}
+                </p>
+              )}
 
-            {/* Rating Buttons */}
-            <div className="grid grid-cols-2 gap-2">
-              {([0, 1, 2, 3, 4, 5] as WordRating[]).map((rating) => (
-                <Button
-                  key={rating}
-                  variant="outline"
-                  className="h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => handleRating(rating)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "w-3 h-3 rounded-full",
-                        RATING_LABELS[rating].color,
-                      )}
-                    />
-                    <span className="font-medium">
-                      {RATING_LABELS[rating].label}
+              {/* Rating Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                {([0, 1, 2, 3, 4, 5] as WordRating[]).map((rating) => (
+                  <Button
+                    key={rating}
+                    variant="outline"
+                    className="h-auto py-3 flex flex-col items-center gap-1"
+                    onClick={() => handleRating(rating)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "w-3 h-3 rounded-full",
+                          RATING_LABELS[rating].color,
+                        )}
+                      />
+                      <span className="font-medium">
+                        {RATING_LABELS[rating].label}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {RATING_LABELS[rating].description}
                     </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {RATING_LABELS[rating].description}
-                  </span>
-                </Button>
-              ))}
-            </div>
+                  </Button>
+                ))}
+              </div>
 
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => setSelectedWord(null)}
-            >
-              Cancel
-            </Button>
-          </CardContent>
-        </Card>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setSelectedWord(null)}
+              >
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Translation (collapsed by default) */}

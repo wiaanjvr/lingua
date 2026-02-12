@@ -182,22 +182,30 @@ export function InteractiveExercisesPhase({
             <CardTitle className="text-lg">Results Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{score}</div>
-                <div className="text-sm text-muted-foreground">Correct</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+              <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
+                  {score}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Correct
+                </div>
               </div>
-              <div className="p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
+              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-red-600">
                   {exercises.length - score}
                 </div>
-                <div className="text-sm text-muted-foreground">Incorrect</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Incorrect
+                </div>
               </div>
-              <div className="p-4 bg-primary/10 rounded-lg">
-                <div className="text-2xl font-bold text-primary">
+              <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {exercises.length}
                 </div>
-                <div className="text-sm text-muted-foreground">Total</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Total
+                </div>
               </div>
             </div>
           </CardContent>

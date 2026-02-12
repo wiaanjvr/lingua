@@ -566,7 +566,7 @@ export default function LearningSessionPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Achievements */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   <div className="p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg text-center border border-blue-500/20">
                     <Headphones className="h-6 w-6 mx-auto mb-1 text-blue-700 dark:text-blue-300" />
                     <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
@@ -594,7 +594,7 @@ export default function LearningSessionPage() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg text-center hover:bg-muted/70 transition-colors">
                     <div className="text-4xl font-bold text-primary">
                       {listenCount}

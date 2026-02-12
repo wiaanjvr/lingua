@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Lesson, LessonWord, GenerateLessonRequest } from "@/types/lesson";
 import { ProficiencyLevel } from "@/types";
 import OpenAI from "openai";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 import {
   selectWordsForLesson,
   generateLessonPrompt,
@@ -11,6 +13,39 @@ import {
   WORD_COUNT_BY_LEVEL,
   NEW_WORD_PERCENTAGE_BY_LEVEL,
 } from "@/lib/lesson/engine";
+
+/**
+ * Generate TTS audio for a lesson text
+ */
+async function generateTTSAudio(
+  text: string,
+  lessonId: string,
+  openaiApiKey: string,
+): Promise<string | null> {
+  try {
+    const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    const mp3 = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "nova", // Good for French
+      input: text,
+      speed: 0.9, // Slightly slower for learners
+    });
+
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+    const audioDir = path.join(process.cwd(), "public", "audio", "lessons");
+    const audioPath = path.join(audioDir, `${lessonId}.mp3`);
+
+    // Ensure directory exists
+    await mkdir(audioDir, { recursive: true });
+    await writeFile(audioPath, buffer);
+
+    return `/audio/lessons/${lessonId}.mp3`;
+  } catch (error) {
+    console.error("TTS generation failed:", error);
+    return null;
+  }
+}
 
 /**
  * Generate a mock lesson for development/fallback
@@ -195,13 +230,29 @@ export async function POST(request: NextRequest) {
     );
     const comprehension = calculateComprehension(analyzedWords);
 
+    // Generate lesson ID first so we can use it for audio filename
+    const lessonId = `lesson-${Date.now()}`;
+
+    // Generate TTS audio for the lesson
+    let audioUrl = "/audio/foundation/je_comprends.mp3"; // Fallback
+    if (openaiApiKey && openaiApiKey !== "your_openai_api_key") {
+      const generatedAudioUrl = await generateTTSAudio(
+        lessonText,
+        lessonId,
+        openaiApiKey,
+      );
+      if (generatedAudioUrl) {
+        audioUrl = generatedAudioUrl;
+      }
+    }
+
     // Create lesson object
     const lesson: Lesson = {
-      id: `lesson-${Date.now()}`,
+      id: lessonId,
       userId: user.id,
       targetText: lessonText,
       translation: "", // Would be generated or fetched
-      audioUrl: "/audio/foundation/bonjour.mp3", // Placeholder - would be TTS
+      audioUrl,
       language: targetLanguage,
       level: userLevel,
       title: lessonTitle,

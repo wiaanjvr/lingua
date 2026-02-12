@@ -153,7 +153,7 @@ export default function LearnPage() {
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground font-light">
-            Loading your journey...
+            Preparing your session...
           </p>
         </div>
       </div>
@@ -177,10 +177,10 @@ export default function LearnPage() {
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-5xl font-light tracking-tight mb-3">
-              Learn <span className="font-serif italic">French</span>
+              Practice <span className="font-serif italic">Session</span>
             </h1>
             <p className="text-lg text-muted-foreground font-light">
-              Immersive comprehension with intelligent repetition
+              Spaced repetition meets comprehensible input
             </p>
           </div>
           <Button
@@ -202,7 +202,7 @@ export default function LearnPage() {
                 <h2 className="text-2xl font-light">Vocabulary Progress</h2>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
                   <div className="text-3xl font-light mb-2">{stats.total}</div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -289,8 +289,8 @@ export default function LearnPage() {
             {stats && stats.total === 0 && (
               <div className="mt-6 p-4 rounded-xl bg-background/10 border border-background/20">
                 <p className="text-sm font-light">
-                  Welcome to your first story. We'll introduce common French
-                  words and begin building your foundation.
+                  Your first session. We'll introduce common words and begin
+                  building your vocabulary foundation.
                 </p>
               </div>
             )}
@@ -320,10 +320,12 @@ export default function LearnPage() {
                 </div>
               </div>
               <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">Listen First</h4>
+                <h4 className="text-lg font-light mb-2">
+                  Listen First, Struggle
+                </h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Focus on comprehension through listening before reading. Train
-                  your ear to absorb the natural flow of French.
+                  Focus on comprehension through listening before seeing text.
+                  The discomfort is the learning.
                 </p>
               </div>
             </div>
@@ -335,10 +337,12 @@ export default function LearnPage() {
                 </div>
               </div>
               <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">Read Along</h4>
+                <h4 className="text-lg font-light mb-2">
+                  Speak Before Reading
+                </h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  New words are highlighted. Understand them from context
-                  first—this strengthens natural comprehension.
+                  Verbalize what you understood. Forced output builds real
+                  fluency that silent reading cannot.
                 </p>
               </div>
             </div>
@@ -350,11 +354,10 @@ export default function LearnPage() {
                 </div>
               </div>
               <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">Rate Your Knowledge</h4>
+                <h4 className="text-lg font-light mb-2">Rate & Reinforce</h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Honestly rate your familiarity with each word. Our spaced
-                  repetition system delivers content at the optimal time for
-                  retention.
+                  Honestly rate your familiarity with each word. Spaced
+                  repetition ensures words appear at optimal intervals.
                 </p>
               </div>
             </div>

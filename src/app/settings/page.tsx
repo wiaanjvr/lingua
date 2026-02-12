@@ -409,8 +409,8 @@ export default function SettingsPage() {
               </div>
               {profile?.subscription_tier === "free" && (
                 <p className="text-sm text-muted-foreground font-light">
-                  Premium: $12/month for unlimited sessions, all content, and
-                  pronunciation feedback
+                  Premium: $12/month for unlimited lessons, multiple languages,
+                  and AI conversation feedback
                 </p>
               )}
             </div>

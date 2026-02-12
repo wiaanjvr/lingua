@@ -61,8 +61,8 @@ export default function LoginPage() {
             <span className="font-serif italic">your journey</span>
           </h1>
           <p className="text-lg font-light text-background/80 max-w-md">
-            Continue mastering French through the timeless art of listening and
-            comprehension.
+            Continue mastering any language through the natural art of listening
+            and comprehension.
           </p>
         </div>
 

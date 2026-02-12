@@ -62,7 +62,7 @@ export default function DashboardPage() {
             Welcome back
           </h1>
           <p className="text-lg text-muted-foreground font-light">
-            Ready to continue your French journey?
+            Ready to embrace the struggle?
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export default function DashboardPage() {
                   <p className="text-white/70 font-light">
                     {sessionsToday >= maxSessionsFree
                       ? "Upgrade to Premium for unlimited daily sessions and advanced features."
-                      : "Immersive comprehensible input with ~95% known words. Listen, speak, and build vocabulary naturally."}
+                      : "Listen without text. Speak before reading. Embrace the productive discomfort."}
                   </p>
                 </div>
 
@@ -192,7 +192,7 @@ export default function DashboardPage() {
               </div>
               <p className="text-sm text-muted-foreground font-light">
                 {stats.totalSessions === 0
-                  ? "Begin your journey today"
+                  ? "The struggle begins today"
                   : "Keep up the momentum"}
               </p>
             </div>

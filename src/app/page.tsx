@@ -55,20 +55,21 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/50 bg-muted/30 backdrop-blur-sm">
               <Award className="h-3.5 w-3.5" />
               <span className="text-xs font-light tracking-wide">
-                Premium Language Mastery
+                Spaced Repetition + Comprehensible Input
               </span>
             </div>
 
             {/* Main headline - large, minimal, elegant */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1]">
-              Master French
+              Master Any Language
               <br />
-              <span className="font-serif italic">Through Listening</span>
+              <span className="font-serif italic">Through the Struggle</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              An intellectual approach to language acquisition. Immersive audio,
-              meaningful practice, and the timeless art of comprehension.
+              Embrace the discomfort of listening and speaking. Build real
+              fluency through comprehensible input, spaced repetition, and
+              forced output.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -94,10 +95,10 @@ export default function Home() {
               <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center mb-6 group-hover:bg-foreground/10 transition-luxury">
                 <Headphones className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-light mb-3">Listening-First</h3>
+              <h3 className="text-lg font-light mb-3">Comprehensible Input</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Prioritize comprehensible audio input. Your mind acquires
-                language through immersion, not translation.
+                Every lesson is ~95% words you know, ~5% new. Push your
+                comprehension without overwhelm.
               </p>
             </div>
 
@@ -105,10 +106,10 @@ export default function Home() {
               <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center mb-6 group-hover:bg-foreground/10 transition-luxury">
                 <Brain className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-light mb-3">Interest-Driven</h3>
+              <h3 className="text-lg font-light mb-3">Spaced Repetition</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Philosophy, science, history—explore content that engages your
-                intellect, not generic lessons.
+                Vocabulary appears at scientifically optimal intervals. Words
+                due for review are woven into fresh content.
               </p>
             </div>
 
@@ -116,10 +117,10 @@ export default function Home() {
               <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center mb-6 group-hover:bg-foreground/10 transition-luxury">
                 <Mic className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-light mb-3">Refined Speaking</h3>
+              <h3 className="text-lg font-light mb-3">Forced Output</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Express ideas meaningfully. Receive precise feedback on
-                pronunciation and fluency.
+                Speak before you see the text. Get comfortable with the
+                struggle—that's where fluency is built.
               </p>
             </div>
 
@@ -127,10 +128,10 @@ export default function Home() {
               <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center mb-6 group-hover:bg-foreground/10 transition-luxury">
                 <TrendingUp className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-light mb-3">Natural Progress</h3>
+              <h3 className="text-lg font-light mb-3">Any Language</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Patterns emerge organically in new contexts. No flashcard
-                anxiety—gradual mastery.
+                The same proven method works across languages. Your brain learns
+                naturally through struggle and repetition.
               </p>
             </div>
           </div>
@@ -141,35 +142,46 @@ export default function Home() {
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-light text-center mb-16 tracking-tight">
-            A Session in{" "}
-            <span className="font-serif italic">Four Movements</span>
+            A Lesson in <span className="font-serif italic">Six Phases</span>
           </h2>
 
           <div className="space-y-12">
             {[
               {
                 number: "01",
-                title: "Immersive Listening",
+                title: "Audio-Only Comprehension",
                 description:
-                  "60-90 seconds of carefully curated audio. Full immersion, then optional vocabulary support for clarity.",
+                  "Listen multiple times without seeing text. Embrace the struggle—your brain is working.",
               },
               {
                 number: "02",
-                title: "Active Recognition",
+                title: "Verbal Check",
                 description:
-                  "Thoughtful comprehension questions. Pattern isolation. Sound differentiation—building understanding, not guessing.",
+                  "Describe what you understood. Speak before reading. This forces active comprehension.",
               },
               {
                 number: "03",
-                title: "Guided Expression",
+                title: "Guided Conversation",
                 description:
-                  "Articulate what you've absorbed. Receive specific pronunciation feedback. Track your evolution.",
+                  "Get feedback on your understanding through dialogue. Request vocabulary hints when needed.",
               },
               {
                 number: "04",
-                title: "Progress Reflection",
+                title: "Text Reveal & Rating",
                 description:
-                  "Review patterns mastered. Preview tomorrow's journey. Cultivate anticipation, not obligation.",
+                  "See the text. Rate each word's familiarity. This feeds your personalized spaced repetition.",
+              },
+              {
+                number: "05",
+                title: "Interactive Exercises",
+                description:
+                  "Reinforce comprehension with targeted practice. Fill gaps in understanding.",
+              },
+              {
+                number: "06",
+                title: "Final Assessment",
+                description:
+                  "Summarize the lesson verbally. Prove your comprehension. Track your growth.",
               },
             ].map((step, index) => (
               <div key={index} className="flex gap-8 group">
@@ -195,10 +207,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-light mb-4 tracking-tight">
-              Thoughtful Pricing
+              Simple Pricing
             </h2>
             <p className="text-muted-foreground font-light">
-              Transparent. Ethical. Premium value.
+              One method. Any language. Real fluency.
             </p>
           </div>
 
@@ -221,7 +233,7 @@ export default function Home() {
                     <div className="w-2 h-2 rounded-full bg-foreground" />
                   </div>
                   <span className="text-sm font-light">
-                    One daily session (15-30 minutes)
+                    One daily lesson (15-30 minutes)
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
@@ -229,7 +241,7 @@ export default function Home() {
                     <div className="w-2 h-2 rounded-full bg-foreground" />
                   </div>
                   <span className="text-sm font-light">
-                    Core learning content
+                    Full 6-phase lesson flow
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
@@ -237,7 +249,7 @@ export default function Home() {
                     <div className="w-2 h-2 rounded-full bg-foreground" />
                   </div>
                   <span className="text-sm font-light">
-                    Basic progress tracking
+                    Spaced repetition vocabulary tracking
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
@@ -245,7 +257,7 @@ export default function Home() {
                     <div className="w-2 h-2 rounded-full bg-foreground" />
                   </div>
                   <span className="text-sm font-light">
-                    Speaking practice (recording)
+                    Speaking practice with recording
                   </span>
                 </div>
               </div>
@@ -283,20 +295,22 @@ export default function Home() {
                   <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-background" />
                   </div>
-                  <span className="text-sm font-light">Unlimited sessions</span>
+                  <span className="text-sm font-light">
+                    Unlimited daily lessons
+                  </span>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-background" />
                   </div>
-                  <span className="text-sm font-light">All content topics</span>
+                  <span className="text-sm font-light">Multiple languages</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-background" />
                   </div>
                   <span className="text-sm font-light">
-                    Advanced progress analytics
+                    Advanced comprehension analytics
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
@@ -304,7 +318,7 @@ export default function Home() {
                     <div className="w-2 h-2 rounded-full bg-background" />
                   </div>
                   <span className="text-sm font-light">
-                    Pronunciation analysis & feedback
+                    AI-powered conversation feedback
                   </span>
                 </div>
               </div>
@@ -323,7 +337,7 @@ export default function Home() {
       <footer className="border-t border-border/50 py-12 px-6">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-sm text-muted-foreground font-light">
-            © 2026 Lingua. Crafted for the discerning learner.
+            © 2026 Lingua. Fluency through struggle.
           </p>
         </div>
       </footer>

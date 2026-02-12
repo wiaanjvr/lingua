@@ -233,11 +233,11 @@ export function FinalAssessmentPhase({
                   onClick={startRecording}
                   disabled={!hasListened}
                   className={cn(
-                    "h-20 w-20 rounded-full",
+                    "h-16 w-16 sm:h-20 sm:w-20 rounded-full",
                     !hasListened && "opacity-50",
                   )}
                 >
-                  <Mic className="h-8 w-8" />
+                  <Mic className="h-6 w-6 sm:h-8 sm:w-8" />
                 </Button>
                 {!hasListened && (
                   <p className="text-sm text-muted-foreground">
@@ -253,9 +253,9 @@ export function FinalAssessmentPhase({
                   size="lg"
                   variant="destructive"
                   onClick={stopRecording}
-                  className="h-20 w-20 rounded-full animate-pulse"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-full animate-pulse"
                 >
-                  <Square className="h-8 w-8" />
+                  <Square className="h-6 w-6 sm:h-8 sm:w-8" />
                 </Button>
 
                 <div className="flex items-center gap-2">

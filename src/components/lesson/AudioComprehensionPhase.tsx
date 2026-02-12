@@ -162,12 +162,12 @@ export function AudioComprehensionPhase({
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
             <Button
               variant="outline"
               size="icon"
               onClick={handleRestart}
-              className="h-10 w-10"
+              className="h-9 w-9 sm:h-10 sm:w-10"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -175,12 +175,12 @@ export function AudioComprehensionPhase({
             <Button
               size="lg"
               onClick={togglePlayPause}
-              className="h-14 w-14 rounded-full"
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full"
             >
               {isPlaying ? (
-                <Pause className="h-6 w-6" />
+                <Pause className="h-5 w-5 sm:h-6 sm:w-6" />
               ) : (
-                <Play className="h-6 w-6 ml-1" />
+                <Play className="h-5 w-5 sm:h-6 sm:w-6 ml-1" />
               )}
             </Button>
 
@@ -188,7 +188,7 @@ export function AudioComprehensionPhase({
               variant="outline"
               size="icon"
               onClick={() => changeSpeed(playbackRate === 1 ? 0.75 : 1)}
-              className="h-10 w-10"
+              className="h-9 w-9 sm:h-10 sm:w-10"
             >
               <span className="text-xs font-medium">{playbackRate}x</span>
             </Button>

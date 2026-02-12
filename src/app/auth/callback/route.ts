@@ -4,13 +4,37 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const error = searchParams.get("error");
+  const errorDescription = searchParams.get("error_description");
   const next = searchParams.get("next") ?? "/dashboard";
+
+  console.log("[Auth Callback] URL:", request.url);
+  console.log("[Auth Callback] Code present:", !!code);
+  console.log("[Auth Callback] Error:", error, errorDescription);
+
+  // Handle OAuth provider errors
+  if (error) {
+    console.error("OAuth error:", error, errorDescription);
+    const errorParams = new URLSearchParams({
+      error: error,
+      ...(errorDescription && { description: errorDescription }),
+    });
+    return NextResponse.redirect(
+      `${origin}/auth/auth-code-error?${errorParams}`,
+    );
+  }
 
   if (code) {
     const supabase = createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error: exchangeError } =
+      await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    console.log("[Auth Callback] Exchange result:", {
+      user: data?.user?.email,
+      error: exchangeError?.message,
+    });
+
+    if (!exchangeError) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
@@ -22,8 +46,17 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${next}`);
       }
     }
+
+    console.error("Code exchange error:", exchangeError.message);
+    const errorParams = new URLSearchParams({
+      error: "code_exchange_failed",
+      description: exchangeError.message,
+    });
+    return NextResponse.redirect(
+      `${origin}/auth/auth-code-error?${errorParams}`,
+    );
   }
 
-  // Return the user to an error page with some instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  // No code provided
+  return NextResponse.redirect(`${origin}/auth/auth-code-error?error=no_code`);
 }

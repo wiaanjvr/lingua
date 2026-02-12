@@ -29,7 +29,7 @@ export default function OnboardingPage() {
     {
       level: "A1",
       label: "Complete Beginner",
-      description: "I know little to no French",
+      description: "I know little to no words in this language",
     },
     {
       level: "A2",
@@ -67,7 +67,7 @@ export default function OnboardingPage() {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Welcome to Lingua</h1>
           <p className="text-muted-foreground">
-            Let's personalize your learning experience
+            Let's personalize your learning through struggle
           </p>
         </div>
 
@@ -92,9 +92,9 @@ export default function OnboardingPage() {
         {step === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>What's your French level?</CardTitle>
+              <CardTitle>What's your current level?</CardTitle>
               <CardDescription>
-                Be honest—we'll adapt the content to match your ability
+                Be honest—we'll adapt the content to challenge you appropriately
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -133,8 +133,8 @@ export default function OnboardingPage() {
             <CardHeader>
               <CardTitle>What are you interested in?</CardTitle>
               <CardDescription>
-                Select 3-5 topics. Your learning content will focus on these
-                areas.
+                Select 3-5 topics. You'll struggle through content you actually
+                care about.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

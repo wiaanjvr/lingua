@@ -41,10 +41,10 @@ export function PhaseIndicator({ currentPhase }: PhaseIndicatorProps) {
   const currentIndex = phases.findIndex((p) => p.id === currentPhase);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6">
-      <div className="relative">
+    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6 overflow-x-auto">
+      <div className="relative min-w-[500px] sm:min-w-0">
         {/* Progress Line */}
-        <div className="absolute top-6 left-0 right-0 h-1 bg-muted">
+        <div className="absolute top-4 sm:top-6 left-0 right-0 h-0.5 sm:h-1 bg-muted">
           <div
             className="h-full bg-primary transition-all duration-500 ease-out"
             style={{ width: `${(currentIndex / (phases.length - 1)) * 100}%` }}
@@ -63,19 +63,19 @@ export function PhaseIndicator({ currentPhase }: PhaseIndicatorProps) {
                 {/* Circle */}
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all duration-300 border-2 relative z-10",
+                    "w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-xl transition-all duration-300 border-2 relative z-10",
                     isCompleted &&
                       "bg-primary border-primary text-primary-foreground scale-100",
                     isCurrent &&
-                      "bg-background border-primary ring-4 ring-primary/20 scale-110 shadow-lg",
+                      "bg-background border-primary ring-2 sm:ring-4 ring-primary/20 scale-110 shadow-lg",
                     isUpcoming &&
                       "bg-background border-muted-foreground/20 text-muted-foreground",
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="h-5 w-5" />
+                    <Check className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                   ) : (
-                    <phase.Icon className="h-5 w-5" />
+                    <phase.Icon className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                   )}
                 </div>
 
