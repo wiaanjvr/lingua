@@ -49,11 +49,40 @@ export function InteractiveExercisesPhase({
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [startTime, setStartTime] = useState<number>(Date.now());
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Generate exercises on mount
+  // Generate exercises on mount using OpenAI API
   useEffect(() => {
-    const generated = generateExercisesForLesson(lesson, 6);
-    setExercises(generated);
+    const fetchExercises = async () => {
+      try {
+        const response = await fetch("/api/lesson/exercises", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lessonId: lesson.id,
+            targetText: lesson.targetText,
+            translation: lesson.translation,
+            level: lesson.level,
+            count: 6,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to generate exercises");
+        }
+
+        const data = await response.json();
+        setExercises(data.exercises);
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+        setLoadError("Failed to generate exercises. Using fallback...");
+        // Fallback to local generation
+        const generated = generateExercisesForLesson(lesson, 6);
+        setExercises(generated);
+      }
+    };
+
+    fetchExercises();
   }, [lesson]);
 
   const currentExercise = exercises[currentIndex];

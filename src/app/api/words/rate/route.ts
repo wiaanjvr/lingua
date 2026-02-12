@@ -51,18 +51,19 @@ export async function POST(request: NextRequest) {
       // Calculate next review using SM-2 algorithm
       const srsUpdate = calculateNextReview(existingWord, rating);
 
-      // Update existing word
+      // Update existing word - map to database column names
       const { data: updatedWord, error: updateError } = await supabase
         .from("user_words")
         .update({
-          easiness_factor: srsUpdate.easiness_factor,
+          ease_factor: srsUpdate.easiness_factor,
           repetitions: srsUpdate.repetitions,
-          interval_days: srsUpdate.interval_days,
+          interval: srsUpdate.interval_days,
           next_review: srsUpdate.next_review.toISOString(),
           status: srsUpdate.status,
-          times_seen: existingWord.times_seen + 1,
-          times_rated: existingWord.times_rated + 1,
-          last_seen: new Date().toISOString(),
+          rating: rating,
+          last_reviewed: new Date().toISOString(),
+          last_rated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", existingWord.id)
         .select()
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
       wordId = existingWord.id;
     } else {
-      // Create new word
+      // Create new word - map to database column names
       const newWordData = initializeNewWord(word, lemma, language);
       const srsUpdate = calculateNextReview(newWordData, rating);
 
@@ -89,13 +90,15 @@ export async function POST(request: NextRequest) {
           word,
           lemma,
           language,
-          easiness_factor: srsUpdate.easiness_factor,
+          ease_factor: srsUpdate.easiness_factor,
           repetitions: srsUpdate.repetitions,
-          interval_days: srsUpdate.interval_days,
+          interval: srsUpdate.interval_days,
           next_review: srsUpdate.next_review.toISOString(),
           status: srsUpdate.status,
-          times_seen: 1,
-          times_rated: 1,
+          rating: rating,
+          context_sentence,
+          last_reviewed: new Date().toISOString(),
+          last_rated_at: new Date().toISOString(),
         })
         .select()
         .single();

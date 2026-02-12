@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { Lesson, LessonWord, GenerateLessonRequest } from "@/types/lesson";
 import { ProficiencyLevel } from "@/types";
 import OpenAI from "openai";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import {
   selectWordsForLesson,
   generateLessonPrompt,
@@ -15,95 +13,101 @@ import {
 } from "@/lib/lesson/engine";
 
 /**
- * Generate TTS audio for a lesson text
+ * Generate TTS audio for a lesson text and upload to Supabase Storage
  */
 async function generateTTSAudio(
+  openai: OpenAI,
   text: string,
   lessonId: string,
-  openaiApiKey: string,
-): Promise<string | null> {
-  try {
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+  userId: string,
+): Promise<string> {
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "nova", // Good for French
+    input: text,
+    speed: 0.9, // Slightly slower for learners
+  });
 
-    const mp3 = await openai.audio.speech.create({
-      model: "tts-1",
-      voice: "nova", // Good for French
-      input: text,
-      speed: 0.9, // Slightly slower for learners
+  const buffer = Buffer.from(await mp3.arrayBuffer());
+
+  // Upload to Supabase Storage
+  const supabase = await createClient();
+  const fileName = `${userId}/${lessonId}.mp3`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("lesson-audio")
+    .upload(fileName, buffer, {
+      contentType: "audio/mpeg",
+      upsert: true,
     });
 
-    const buffer = Buffer.from(await mp3.arrayBuffer());
-    const audioDir = path.join(process.cwd(), "public", "audio", "lessons");
-    const audioPath = path.join(audioDir, `${lessonId}.mp3`);
-
-    // Ensure directory exists
-    await mkdir(audioDir, { recursive: true });
-    await writeFile(audioPath, buffer);
-
-    return `/audio/lessons/${lessonId}.mp3`;
-  } catch (error) {
-    console.error("TTS generation failed:", error);
-    return null;
+  if (uploadError) {
+    throw new Error(`Failed to upload audio: ${uploadError.message}`);
   }
+
+  // Get public URL
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("lesson-audio").getPublicUrl(fileName);
+
+  return publicUrl;
 }
 
 /**
- * Generate a mock lesson for development/fallback
+ * Generate lesson text using OpenAI
  */
-function generateMockLesson(
-  userId: string,
-  language: string,
+async function generateLessonText(
+  openai: OpenAI,
+  wordSelection: ReturnType<typeof selectWordsForLesson>,
+  options: {
+    wordCount: number;
+    newWordPct: number;
+    prioritizeReview: boolean;
+    topic?: string;
+  },
   level: ProficiencyLevel,
-): Omit<Lesson, "words"> {
-  const mockTexts: Record<
-    string,
-    { title: string; text: string; translation: string }
-  > = {
-    A0: {
-      title: "À la boulangerie",
-      text: "Bonjour! Je voudrais un croissant, s'il vous plaît. C'est combien? Deux euros. Merci, au revoir!",
-      translation:
-        "Hello! I would like a croissant, please. How much is it? Two euros. Thank you, goodbye!",
+  language: string,
+): Promise<{ title: string; text: string; translation: string }> {
+  const prompt = generateLessonPrompt(
+    wordSelection,
+    {
+      targetWordCount: options.wordCount,
+      newWordPercentage: options.newWordPct,
+      reviewWordPriority: options.prioritizeReview,
+      topicPreference: options.topic,
     },
-    A1: {
-      title: "Une journée au parc",
-      text: "Aujourd'hui, il fait beau. Marie va au parc avec son chien. Le chien s'appelle Max. Ils marchent sous les arbres. Marie voit un ami. Elle dit bonjour. Ils parlent un peu. Le chien joue avec une balle. Quelle belle journée!",
-      translation:
-        "Today, the weather is nice. Marie goes to the park with her dog. The dog is called Max. They walk under the trees. Marie sees a friend. She says hello. They talk a little. The dog plays with a ball. What a beautiful day!",
-    },
-    A2: {
-      title: "Le restaurant",
-      text: "Hier soir, je suis allé au restaurant avec ma famille. Nous avons choisi un restaurant italien près de chez nous. J'ai commandé des pâtes à la carbonara et mon frère a pris une pizza. Le serveur était très gentil. Après le repas, nous avons mangé une glace au chocolat. C'était délicieux!",
-      translation:
-        "Last night, I went to the restaurant with my family. We chose an Italian restaurant near our house. I ordered carbonara pasta and my brother had a pizza. The waiter was very nice. After the meal, we ate chocolate ice cream. It was delicious!",
-    },
-  };
+    level,
+    language,
+  );
 
-  const content = mockTexts[level] || mockTexts["A1"];
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: `Generate natural ${language} lessons for ${level} learners. 
+        Output JSON with format: {"title": "Lesson Title", "text": "The lesson text...", "translation": "English translation..."}`,
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.7,
+    max_tokens: Math.min(options.wordCount * 4, 1000),
+  });
+
+  const response = JSON.parse(completion.choices[0]?.message?.content || "{}");
+
+  if (!response.text) {
+    throw new Error("Failed to generate lesson text");
+  }
 
   return {
-    id: `lesson-${Date.now()}`,
-    userId,
-    targetText: content.text,
-    translation: content.translation,
-    audioUrl: "/audio/sample.mp3", // Would be TTS generated
-    language,
-    level,
-    title: content.title,
-    totalWords: content.text.split(/\s+/).length,
-    newWordCount: 0,
-    reviewWordCount: 0,
-    knownWordCount: 0,
-    comprehensionPercentage: 0,
-    currentPhase: "audio-comprehension",
-    listenCount: 0,
-    completed: false,
-    createdAt: new Date().toISOString(),
-    generationParams: {
-      targetWordCount: WORD_COUNT_BY_LEVEL[level],
-      newWordPercentage: NEW_WORD_PERCENTAGE_BY_LEVEL[level],
-      reviewWordPriority: true,
-    },
+    title: response.title || `${language.toUpperCase()} Lesson`,
+    text: response.text,
+    translation: response.translation || "",
   };
 }
 
@@ -121,6 +125,20 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Require OpenAI API key - no local fallbacks
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey || openaiApiKey === "your_openai_api_key") {
+      return NextResponse.json(
+        {
+          error:
+            "OpenAI API key is required for lesson generation. Please configure OPENAI_API_KEY in your environment.",
+        },
+        { status: 503 },
+      );
+    }
+
+    const openai = new OpenAI({ apiKey: openaiApiKey });
 
     const body = await request.json();
     const {
@@ -163,64 +181,23 @@ export async function POST(request: NextRequest) {
       reviewWordPriority: prioritizeReview,
     });
 
-    let lessonText: string;
-    let lessonTitle: string;
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-
-    // Generate lesson using OpenAI or fallback to mock
-    if (openaiApiKey && openaiApiKey !== "your_openai_api_key") {
-      try {
-        const openai = new OpenAI({ apiKey: openaiApiKey });
-
-        const prompt = generateLessonPrompt(
-          wordSelection,
-          {
-            targetWordCount: wordCount,
-            newWordPercentage: newWordPct,
-            reviewWordPriority: prioritizeReview,
-            topicPreference: topic,
-          },
-          userLevel,
-          targetLanguage,
-        );
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `Generate natural ${targetLanguage} lessons for ${userLevel} learners. 
-              Output JSON with format: {"title": "Lesson Title", "text": "The lesson text...", "translation": "English translation..."}`,
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.7,
-          max_tokens: Math.min(wordCount * 4, 1000),
-        });
-
-        const response = JSON.parse(
-          completion.choices[0]?.message?.content || "{}",
-        );
-
-        lessonText =
-          response.text ||
-          generateMockLesson(user.id, targetLanguage, userLevel).targetText;
-        lessonTitle = response.title || "Lesson";
-      } catch (aiError) {
-        console.error("OpenAI error, using mock:", aiError);
-        const mock = generateMockLesson(user.id, targetLanguage, userLevel);
-        lessonText = mock.targetText;
-        lessonTitle = mock.title;
-      }
-    } else {
-      const mock = generateMockLesson(user.id, targetLanguage, userLevel);
-      lessonText = mock.targetText;
-      lessonTitle = mock.title;
-    }
+    // Generate lesson text using OpenAI
+    const {
+      title: lessonTitle,
+      text: lessonText,
+      translation,
+    } = await generateLessonText(
+      openai,
+      wordSelection,
+      {
+        wordCount,
+        newWordPct,
+        prioritizeReview,
+        topic,
+      },
+      userLevel,
+      targetLanguage,
+    );
 
     // Analyze text to identify words
     const analyzedWords = analyzeTextWords(
@@ -230,28 +207,23 @@ export async function POST(request: NextRequest) {
     );
     const comprehension = calculateComprehension(analyzedWords);
 
-    // Generate lesson ID first so we can use it for audio filename
+    // Generate lesson ID
     const lessonId = `lesson-${Date.now()}`;
 
-    // Generate TTS audio for the lesson
-    let audioUrl = "/audio/foundation/je_comprends.mp3"; // Fallback
-    if (openaiApiKey && openaiApiKey !== "your_openai_api_key") {
-      const generatedAudioUrl = await generateTTSAudio(
-        lessonText,
-        lessonId,
-        openaiApiKey,
-      );
-      if (generatedAudioUrl) {
-        audioUrl = generatedAudioUrl;
-      }
-    }
+    // Generate TTS audio and upload to Supabase Storage
+    const audioUrl = await generateTTSAudio(
+      openai,
+      lessonText,
+      lessonId,
+      user.id,
+    );
 
     // Create lesson object
     const lesson: Lesson = {
       id: lessonId,
       userId: user.id,
       targetText: lessonText,
-      translation: "", // Would be generated or fetched
+      translation,
       audioUrl,
       language: targetLanguage,
       level: userLevel,
@@ -275,32 +247,57 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Save lesson to database
-    const { error: insertError } = await supabase.from("lessons").insert({
-      id: lesson.id,
-      user_id: user.id,
-      title: lesson.title,
-      target_text: lesson.targetText,
-      translation: lesson.translation,
-      audio_url: lesson.audioUrl,
-      language: lesson.language,
-      level: lesson.level,
-      words: lesson.words,
-      total_words: lesson.totalWords,
-      new_word_count: lesson.newWordCount,
-      review_word_count: lesson.reviewWordCount,
-      known_word_count: lesson.knownWordCount,
-      comprehension_percentage: lesson.comprehensionPercentage,
-      current_phase: lesson.currentPhase,
-      listen_count: lesson.listenCount,
-      completed: lesson.completed,
-      generation_params: lesson.generationParams,
-    });
+    // Save lesson to Supabase database
+    const { data: insertedLesson, error: insertError } = await supabase
+      .from("lessons")
+      .insert({
+        id: lesson.id,
+        user_id: user.id,
+        title: lesson.title,
+        target_text: lesson.targetText,
+        translation: lesson.translation,
+        audio_url: lesson.audioUrl,
+        language: lesson.language,
+        level: lesson.level,
+        words: lesson.words,
+        total_words: lesson.totalWords,
+        new_word_count: lesson.newWordCount,
+        review_word_count: lesson.reviewWordCount,
+        known_word_count: lesson.knownWordCount,
+        comprehension_percentage: lesson.comprehensionPercentage,
+        current_phase: lesson.currentPhase,
+        listen_count: lesson.listenCount,
+        completed: lesson.completed,
+        generation_params: lesson.generationParams,
+      })
+      .select()
+      .single();
 
     if (insertError) {
-      console.error("Error saving lesson:", insertError);
-      // Return lesson anyway for immediate use
+      console.error("Error saving lesson to database:", insertError);
+      // Log helpful message about missing table
+      if (
+        insertError.code === "42P01" ||
+        insertError.message?.includes("does not exist")
+      ) {
+        console.error(
+          "The 'lessons' table may not exist. Run add_lessons_table.sql migration.",
+        );
+      }
+      // Still return the lesson but warn the client
+      return NextResponse.json({
+        lesson,
+        warning:
+          "Lesson generated but not saved to database. Progress will not persist.",
+        wordStats: {
+          newWords: wordSelection.newWords,
+          reviewWords: wordSelection.reviewWords,
+          knownWords: wordSelection.knownWords,
+        },
+      });
     }
+
+    console.log("Lesson saved to database:", insertedLesson?.id);
 
     return NextResponse.json({
       lesson,
@@ -312,9 +309,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in POST /api/lesson/generate:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

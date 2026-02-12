@@ -68,6 +68,7 @@ export default function LessonPage() {
 
   // Progress tracking
   const [overallProgress, setOverallProgress] = useState(0);
+  const [lessonStartTime, setLessonStartTime] = useState<number | null>(null);
 
   // Load user and check for existing lesson
   useEffect(() => {
@@ -100,6 +101,7 @@ export default function LessonPage() {
         setLesson(existingLesson);
         setCurrentPhase(existingLesson.currentPhase || "audio-comprehension");
         setListenCount(existingLesson.listenCount || 0);
+        setLessonStartTime(Date.now()); // Track session time from resume
       }
     } catch (error) {
       console.error("Error loading lesson:", error);
@@ -129,6 +131,7 @@ export default function LessonPage() {
       setCurrentPhase("audio-comprehension");
       setListenCount(0);
       setOverallProgress(0);
+      setLessonStartTime(Date.now());
     } catch (error) {
       console.error("Error generating lesson:", error);
       alert("Failed to generate lesson. Please try again.");
@@ -183,13 +186,100 @@ export default function LessonPage() {
     if (!lesson) return;
 
     try {
-      await supabase
+      // Mark lesson as completed
+      const { error: lessonError } = await supabase
         .from("lessons")
         .update({
           completed: true,
           completed_at: new Date().toISOString(),
         })
         .eq("id", lesson.id);
+
+      if (lessonError) {
+        console.error("Error updating lesson completion:", lessonError);
+      }
+
+      // Update user metrics
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Error getting user:", userError);
+        return;
+      }
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select(
+            "streak, last_lesson_date, total_practice_minutes, sessions_completed",
+          )
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          // If columns don't exist, this will fail - show user-friendly message
+          if (
+            profileError.message?.includes("column") ||
+            profileError.code === "PGRST204"
+          ) {
+            console.error(
+              "Profile metrics columns may not exist. Run the add_lesson_metrics.sql migration.",
+            );
+          }
+          return;
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+        const lastLessonDate = profile?.last_lesson_date;
+        const practicedMinutes = lessonStartTime
+          ? Math.round((Date.now() - lessonStartTime) / 60000)
+          : 5; // Default 5 minutes if no start time
+
+        // Calculate new streak
+        let newStreak = 1;
+        if (lastLessonDate) {
+          const lastDate = new Date(lastLessonDate);
+          const todayDate = new Date(today);
+          const daysDiff = Math.floor(
+            (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+          );
+
+          if (daysDiff === 0) {
+            // Same day - maintain streak
+            newStreak = profile?.streak || 1;
+          } else if (daysDiff === 1) {
+            // Consecutive day - increment streak
+            newStreak = (profile?.streak || 0) + 1;
+          }
+          // daysDiff > 1 means streak resets to 1
+        }
+
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            streak: newStreak,
+            last_lesson_date: today,
+            total_practice_minutes:
+              (profile?.total_practice_minutes || 0) + practicedMinutes,
+            sessions_completed: (profile?.sessions_completed || 0) + 1,
+          })
+          .eq("id", user.id);
+
+        if (updateError) {
+          console.error("Error updating profile metrics:", updateError);
+        } else {
+          console.log("Profile metrics updated successfully:", {
+            streak: newStreak,
+            total_practice_minutes:
+              (profile?.total_practice_minutes || 0) + practicedMinutes,
+            sessions_completed: (profile?.sessions_completed || 0) + 1,
+          });
+        }
+      }
     } catch (error) {
       console.error("Error completing lesson:", error);
     }

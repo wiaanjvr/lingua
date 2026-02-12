@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
@@ -45,7 +45,7 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
@@ -74,7 +74,7 @@ export async function signup(formData: FormData) {
     };
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -95,6 +95,13 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
+  // If user session exists, email confirmation is disabled - redirect to onboarding
+  if (data.session) {
+    revalidatePath("/", "layout");
+    redirect("/onboarding");
+  }
+
+  // Otherwise, email confirmation is required
   return {
     success: true,
     message: "Check your email to confirm your account!",
@@ -102,14 +109,14 @@ export async function signup(formData: FormData) {
 }
 
 export async function signout() {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/");
 }
 
 export async function resetPassword(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const email = formData.get("email") as string;
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -124,7 +131,7 @@ export async function resetPassword(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const password = formData.get("password") as string;
 
   const { error } = await supabase.auth.updateUser({
@@ -139,7 +146,7 @@ export async function updatePassword(formData: FormData) {
 }
 
 export async function signInWithOAuth(provider: "google" | "github") {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -158,7 +165,7 @@ export async function signInWithOAuth(provider: "google" | "github") {
 }
 
 export async function getUser() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -166,7 +173,7 @@ export async function getUser() {
 }
 
 export async function getProfile() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -183,7 +190,7 @@ export async function getProfile() {
 }
 
 export async function updateProfile(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -212,7 +219,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function uploadAvatar(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Play,
@@ -15,16 +16,145 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [sessionsToday] = useState(0);
+  const supabase = createClient();
+  const [sessionsToday, setSessionsToday] = useState(0);
+  const [loading, setLoading] = useState(true);
   const maxSessionsFree = 1;
 
-  const stats = {
+  const [stats, setStats] = useState({
     totalSessions: 0,
     currentLevel: "A1",
     streak: 0,
     totalTime: 0,
     avgComprehension: 0,
-  };
+    wordsEncountered: 0,
+  });
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Fetch profile with metrics
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select(
+            "streak, total_practice_minutes, sessions_completed, proficiency_level",
+          )
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+
+          // Handle missing profile - create one
+          if (profileError.code === "PGRST116") {
+            // Profile doesn't exist, create it
+            const { error: insertError } = await supabase
+              .from("profiles")
+              .insert({
+                id: user.id,
+                email: user.email,
+                full_name:
+                  user.user_metadata?.full_name ||
+                  user.user_metadata?.name ||
+                  "",
+                avatar_url:
+                  user.user_metadata?.avatar_url ||
+                  user.user_metadata?.picture ||
+                  "",
+              });
+
+            if (insertError) {
+              console.error("Error creating profile:", insertError);
+              setDbError(`Profile creation failed: ${insertError.message}`);
+            } else {
+              // Profile created, redirect to onboarding
+              router.push("/onboarding");
+              return;
+            }
+          } else if (
+            profileError.message?.includes("column") ||
+            profileError.code === "PGRST204"
+          ) {
+            setDbError(
+              "Database migration needed. Please run the add_lesson_metrics.sql migration.",
+            );
+          } else {
+            setDbError(profileError.message);
+          }
+        }
+
+        // Count sessions completed today
+        const today = new Date().toISOString().split("T")[0];
+        const { count: todayCount, error: lessonsError } = await supabase
+          .from("lessons")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("completed", true)
+          .gte("completed_at", today);
+
+        if (lessonsError && lessonsError.code === "42P01") {
+          setDbError(
+            "Lessons table not found. Please run the add_lessons_table.sql migration.",
+          );
+        }
+
+        // Calculate average comprehension from completed lessons
+        let avgComprehension = 0;
+        const { data: completedLessons } = await supabase
+          .from("lessons")
+          .select("final_comprehension_score, comprehension_percentage")
+          .eq("user_id", user.id)
+          .eq("completed", true);
+
+        if (completedLessons && completedLessons.length > 0) {
+          const scores = completedLessons
+            .map(
+              (l) =>
+                l.final_comprehension_score ?? l.comprehension_percentage ?? 0,
+            )
+            .filter((s) => s > 0);
+          if (scores.length > 0) {
+            avgComprehension = Math.round(
+              scores.reduce((a, b) => a + b, 0) / scores.length,
+            );
+          }
+        }
+
+        // Get words encountered count from user_words table
+        const { count: wordsCount } = await supabase
+          .from("user_words")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+
+        setStats({
+          totalSessions: profile?.sessions_completed || 0,
+          currentLevel: profile?.proficiency_level || "A1",
+          streak: profile?.streak || 0,
+          totalTime: profile?.total_practice_minutes || 0,
+          avgComprehension,
+          wordsEncountered: wordsCount || 0,
+        });
+
+        setSessionsToday(todayCount || 0);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+        setDbError(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, [supabase, router]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,6 +186,21 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        {/* Database Error Banner */}
+        {dbError && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
+            <p className="font-medium mb-1">Database Setup Required</p>
+            <p className="text-sm">{dbError}</p>
+            <p className="text-sm mt-2">
+              Visit{" "}
+              <code className="bg-amber-500/20 px-1 rounded">
+                /api/debug/database
+              </code>{" "}
+              to see detailed diagnostics.
+            </p>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-light mb-3 tracking-tight">
@@ -219,7 +364,9 @@ export default function DashboardPage() {
                   Vocabulary
                 </span>
               </div>
-              <div className="text-3xl font-light mb-2">0</div>
+              <div className="text-3xl font-light mb-2">
+                {stats.wordsEncountered}
+              </div>
               <p className="text-sm text-muted-foreground font-light">
                 Words encountered
               </p>

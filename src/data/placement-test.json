@@ -1,0 +1,122 @@
+{
+  "language": "fr",
+  "audioItems": [
+    {
+      "id": "audio-a1",
+      "difficulty": "A1",
+      "audioUrl": "/audio/placement/audio-a1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Bonjour, je m'appelle Marie. J'ai vingt ans.",
+      "question": "Comment s'appelle la personne ?",
+      "options": ["Sophie", "Marie", "Claire", "Julie"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-a2",
+      "difficulty": "A2",
+      "audioUrl": "/audio/placement/audio-a2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Ce matin, je suis allé au marché pour acheter des fruits et des légumes.",
+      "question": "Où est-il allé ?",
+      "options": ["À la maison", "À l'école", "Au marché", "Au parc"],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-b1",
+      "difficulty": "B1",
+      "audioUrl": "/audio/placement/audio-b1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Le rapport indique que les ventes ont augmenté de quinze pour cent ce trimestre par rapport à l'année dernière.",
+      "question": "Qu'est-ce qui a augmenté ?",
+      "options": ["Les produits", "Les ventes", "Les clients", "Les prix"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-b2",
+      "difficulty": "B2",
+      "audioUrl": "/audio/placement/audio-b2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Bien que la situation économique soit préoccupante, les experts estiment qu'une reprise progressive est envisageable d'ici la fin de l'année.",
+      "question": "Quelle est l'opinion des experts ?",
+      "options": [
+        "C'est impossible à dire",
+        "La situation est grave",
+        "Une amélioration est possible",
+        "Tout va bien"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-c1",
+      "difficulty": "C1",
+      "audioUrl": "/audio/placement/audio-c1.mp3",
+      "durationSeconds": 10,
+      "transcript": "L'émergence des technologies disruptives a fondamentalement bouleversé les paradigmes traditionnels qui régissaient jusqu'alors le secteur industriel.",
+      "question": "Quel secteur est mentionné ?",
+      "options": [
+        "Le secteur médical",
+        "Le secteur agricole",
+        "Le secteur industriel",
+        "Le secteur éducatif"
+      ],
+      "correctIndex": 2
+    }
+  ],
+  "readingItems": [
+    {
+      "id": "reading-a1",
+      "difficulty": "A1",
+      "passage": "Je suis Pierre. J'habite à Paris. J'aime le café et le chocolat. Mon chat s'appelle Minou.",
+      "question": "Où habite Pierre ?",
+      "options": ["À Marseille", "À Paris", "À Nice", "À Lyon"],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-a2",
+      "difficulty": "A2",
+      "passage": "Hier, Marie est allée au supermarché. Elle a acheté du pain, du fromage et une bouteille de vin rouge. Elle a payé quinze euros.",
+      "question": "Combien a payé Marie ?",
+      "options": ["Dix euros", "Vingt euros", "Quinze euros", "Cinq euros"],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-b1",
+      "difficulty": "B1",
+      "passage": "Le musée du Louvre accueille chaque année des millions de visiteurs. La Joconde reste l'œuvre la plus célèbre, mais le musée possède également d'importantes collections d'antiquités égyptiennes.",
+      "question": "Quelle est l'œuvre la plus célèbre ?",
+      "options": [
+        "Une peinture moderne",
+        "Les antiquités égyptiennes",
+        "La Joconde",
+        "Une sculpture grecque"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-b2",
+      "difficulty": "B2",
+      "passage": "Malgré les avancées technologiques, certains chercheurs s'inquiètent des conséquences environnementales de l'intelligence artificielle. La consommation énergétique des centres de données ne cesse de croître.",
+      "question": "Qu'est-ce qui ne cesse de croître ?",
+      "options": [
+        "Le prix de l'énergie",
+        "La consommation énergétique",
+        "Le nombre de chercheurs",
+        "La vitesse des ordinateurs"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-c1",
+      "difficulty": "C1",
+      "passage": "La dialectique inhérente aux mouvements sociaux contemporains révèle une tension fondamentale entre l'aspiration à l'universalisme des droits et la revendication particulariste des identités culturelles.",
+      "question": "De quoi parle ce texte ?",
+      "options": [
+        "De la politique nationale",
+        "Des mouvements sociaux",
+        "De l'éducation moderne",
+        "De l'économie mondiale"
+      ],
+      "correctIndex": 1
+    }
+  ]
+}

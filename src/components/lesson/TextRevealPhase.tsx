@@ -25,34 +25,38 @@ interface TextRevealPhaseProps {
   onPhaseComplete: () => void;
 }
 
-// Word rating descriptions
-const RATING_LABELS: Record<
-  WordRating,
-  { label: string; description: string; color: string }
-> = {
-  0: {
+// 4 word rating options mapping to SRS ratings
+const RATING_OPTIONS: {
+  rating: WordRating;
+  label: string;
+  description: string;
+  color: string;
+}[] = [
+  {
+    rating: 0,
     label: "Don't Know",
-    description: "Never seen this word",
+    description: "Unfamiliar word",
     color: "bg-red-500",
   },
-  1: {
-    label: "Barely",
-    description: "Vaguely familiar",
+  {
+    rating: 2,
+    label: "Hard",
+    description: "Difficult to recall",
     color: "bg-orange-500",
   },
-  2: {
-    label: "Hard",
-    description: "Know it but struggle",
-    color: "bg-amber-500",
+  {
+    rating: 3,
+    label: "Good",
+    description: "Know with thought",
+    color: "bg-lime-500",
   },
-  3: { label: "Good", description: "Know it well", color: "bg-lime-500" },
-  4: { label: "Easy", description: "Very comfortable", color: "bg-green-500" },
-  5: {
-    label: "Perfect",
-    description: "Instant recall",
+  {
+    rating: 5,
+    label: "Easy",
+    description: "Know instantly",
     color: "bg-emerald-500",
   },
-};
+];
 
 export function TextRevealPhase({
   lesson,
@@ -149,14 +153,20 @@ export function TextRevealPhase({
       className += "ring-2 ring-primary ring-offset-2 ";
     }
 
+    // Check if next word is punctuation (don't add space before punctuation)
+    const nextWord = lesson.words[index + 1];
+    const needsSpace = !nextWord || !/^[.,;:!?'"()]+$/.test(nextWord.word);
+
     return (
-      <span
-        key={index}
-        className={className}
-        onClick={() => isTargetWord && !isRated && handleWordClick(word)}
-      >
-        {word.word}
-      </span>
+      <React.Fragment key={index}>
+        <span
+          className={className}
+          onClick={() => isTargetWord && !isRated && handleWordClick(word)}
+        >
+          {word.word}
+        </span>
+        {needsSpace && " "}
+      </React.Fragment>
     );
   };
 
@@ -270,27 +280,22 @@ export function TextRevealPhase({
               )}
 
               {/* Rating Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                {([0, 1, 2, 3, 4, 5] as WordRating[]).map((rating) => (
+              <div className="grid grid-cols-2 gap-3">
+                {RATING_OPTIONS.map((option) => (
                   <Button
-                    key={rating}
+                    key={option.rating}
                     variant="outline"
-                    className="h-auto py-3 flex flex-col items-center gap-1"
-                    onClick={() => handleRating(rating)}
+                    className="h-auto py-4 flex flex-col items-center gap-1"
+                    onClick={() => handleRating(option.rating)}
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={cn(
-                          "w-3 h-3 rounded-full",
-                          RATING_LABELS[rating].color,
-                        )}
+                        className={cn("w-3 h-3 rounded-full", option.color)}
                       />
-                      <span className="font-medium">
-                        {RATING_LABELS[rating].label}
-                      </span>
+                      <span className="font-medium">{option.label}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {RATING_LABELS[rating].description}
+                      {option.description}
                     </span>
                   </Button>
                 ))}

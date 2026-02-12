@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import foundationLessons from "@/data/foundation-lessons.json";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,27 +7,53 @@ export async function GET(request: Request) {
   const phase = searchParams.get("phase");
   const order = searchParams.get("order");
 
-  let lessons = foundationLessons;
+  try {
+    const supabase = await createClient();
 
-  // Filter by level
-  if (level) {
-    lessons = lessons.filter((lesson) => lesson.level === level);
+    // Build query
+    let query = supabase.from("foundation_lessons").select("*");
+
+    // Filter by level
+    if (level) {
+      query = query.eq("level", level);
+    }
+
+    // Filter by phase
+    if (phase) {
+      query = query.eq("phase", phase);
+    }
+
+    // Get specific lesson by order
+    if (order) {
+      const orderNum = parseInt(order, 10);
+      query = query.eq("order", orderNum);
+
+      const { data: lessons, error } = await query;
+
+      if (error) {
+        console.error("Error fetching foundation lesson:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json(lessons?.[0] || null);
+    }
+
+    // Sort by order
+    query = query.order("order", { ascending: true });
+
+    const { data: lessons, error } = await query;
+
+    if (error) {
+      console.error("Error fetching foundation lessons:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(lessons || []);
+  } catch (error) {
+    console.error("Error in foundation API:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-
-  // Filter by phase
-  if (phase) {
-    lessons = lessons.filter((lesson) => lesson.phase === phase);
-  }
-
-  // Get specific lesson by order
-  if (order) {
-    const orderNum = parseInt(order, 10);
-    const lesson = lessons.find((l) => l.order === orderNum);
-    return NextResponse.json(lesson || null);
-  }
-
-  // Sort by order
-  lessons.sort((a, b) => a.order - b.order);
-
-  return NextResponse.json(lessons);
 }

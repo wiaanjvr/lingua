@@ -6,120 +6,14 @@
 
 import { UserWord, ProficiencyLevel, StoryGenerationParams } from "@/types";
 import { selectWordsForStory, isWordDue } from "./algorithm";
+import commonFrenchWords from "@/data/common-french-words.json";
+import { LEVEL_WORD_ALLOCATION } from "./seed-vocabulary";
 
 /**
  * Common French words by frequency (top 1000)
- * Used for generating stories when user has limited vocabulary
+ * Now loaded from JSON data file
  */
-const COMMON_FRENCH_WORDS = [
-  "le",
-  "de",
-  "un",
-  "être",
-  "et",
-  "à",
-  "il",
-  "avoir",
-  "ne",
-  "je",
-  "son",
-  "que",
-  "se",
-  "qui",
-  "ce",
-  "dans",
-  "en",
-  "du",
-  "elle",
-  "au",
-  "pour",
-  "pas",
-  "que",
-  "vous",
-  "par",
-  "sur",
-  "faire",
-  "plus",
-  "dire",
-  "me",
-  "on",
-  "mon",
-  "lui",
-  "nous",
-  "comme",
-  "mais",
-  "pouvoir",
-  "avec",
-  "tout",
-  "y",
-  "aller",
-  "voir",
-  "en",
-  "bien",
-  "où",
-  "sans",
-  "tu",
-  "ou",
-  "leur",
-  "homme",
-  "si",
-  "deux",
-  "moi",
-  "autre",
-  "notre",
-  "savoir",
-  "on",
-  "aussi",
-  "leur",
-  "très",
-  "dire",
-  "elle",
-  "si",
-  "ces",
-  "celui",
-  "nouveau",
-  "an",
-  "monde",
-  "année",
-  "temps",
-  "jour",
-  "voir",
-  "chose",
-  "même",
-  "vie",
-  "sortir",
-  "trois",
-  "venir",
-  "tout",
-  "alors",
-  "après",
-  "vouloir",
-  "français",
-  "chez",
-  "grand",
-  "encore",
-  "main",
-  "partir",
-  "ville",
-  "croire",
-  "demander",
-  "fille",
-  "quelque",
-  "trouver",
-  "rendre",
-  "petit",
-  "heure",
-  "semaine",
-  "œil",
-  "poser",
-  "cas",
-  "bout",
-  "prendre",
-  "certain",
-  "question",
-  "premier",
-  "fois",
-];
+const COMMON_FRENCH_WORDS = commonFrenchWords.words.map((w) => w.word);
 
 export interface WordSelection {
   knownWords: string[]; // Words user already knows well
@@ -145,7 +39,23 @@ export function selectWordsForGeneration(
   const dueWords = userWords.filter((w) => isWordDue(w));
   const totalKnownWords = masteredAndKnown.length + learning.length;
 
-  // For beginners with few/no words, use all new words
+  // For complete beginners with 0 words, use only 5 simple words for a single sentence
+  if (totalKnownWords === 0) {
+    const existingLemmas = new Set(userWords.map((w) => w.lemma.toLowerCase()));
+    const newWordCandidates = COMMON_FRENCH_WORDS.filter(
+      (word) => !existingLemmas.has(word.toLowerCase()),
+    );
+    const newWords = newWordCandidates.slice(0, 5); // Only 5 words for single sentence
+
+    return {
+      knownWords: [],
+      reviewWords: [],
+      newWords: newWords,
+      allWords: newWords,
+    };
+  }
+
+  // For beginners with few words (1-9), use all new words
   if (totalKnownWords < 10) {
     const existingLemmas = new Set(userWords.map((w) => w.lemma.toLowerCase()));
     const newWordCandidates = COMMON_FRENCH_WORDS.filter(
@@ -212,6 +122,7 @@ export function selectWordsForGeneration(
 
 /**
  * Generate story prompt for AI (OpenAI, Claude, etc.)
+ * Emphasizes comprehensible input: 95% known words + 5% new words
  */
 export function generateStoryPrompt(
   wordSelection: WordSelection,
@@ -219,40 +130,100 @@ export function generateStoryPrompt(
 ): string {
   const { level, topic, word_count_target, language } = params;
 
-  // If no words selected (beginner case), use top common words
+  // If no words selected (beginner case), use top common words based on level
+  const levelWordCount = LEVEL_WORD_ALLOCATION[level] || 50;
   const vocabularyToUse =
     wordSelection.allWords.length > 0
       ? wordSelection.allWords
-      : COMMON_FRENCH_WORDS.slice(0, word_count_target);
+      : COMMON_FRENCH_WORDS.slice(
+          0,
+          Math.max(levelWordCount, word_count_target),
+        );
+
+  // Calculate percentages for comprehensible input
+  const knownWordCount =
+    wordSelection.knownWords.length + wordSelection.reviewWords.length;
+  const newWordCount = wordSelection.newWords.length;
+  const totalWords = knownWordCount + newWordCount;
+  const knownPercentage =
+    totalWords > 0 ? Math.round((knownWordCount / totalWords) * 100) : 95;
+
+  // Special case: Complete beginner with 0 known words
+  if (knownWordCount === 0) {
+    const simpleWords = wordSelection.newWords.slice(0, 5);
+
+    const prompt = `Generate a single simple sentence in ${language} for an absolute beginner.
+
+**🚨 CRITICAL: COMPLETE BEGINNER - SINGLE SENTENCE ONLY 🚨**
+
+**REQUIREMENTS:**
+- Generate ONLY ONE sentence
+- Use MAXIMUM 5 words total (including articles)
+- Use ONLY the most basic, common words from this list: ${simpleWords.join(", ")}
+- The sentence must be extremely simple and clear
+- Use present tense only
+- Example structure: "Je suis Marie" or "Le chat dort"
+
+**FORBIDDEN:**
+- Do NOT write a story
+- Do NOT use multiple sentences
+- Do NOT use complex grammar
+- Do NOT use words not in the provided list
+
+Write the single sentence now. Return ONLY the sentence in ${language}, nothing else.`;
+
+    return prompt;
+  }
+
+  // Calculate exact word distribution for 95%/5% ratio
+  const targetKnownWordOccurrences = Math.floor(word_count_target * 0.95);
+  const targetNewWordOccurrences = Math.ceil(word_count_target * 0.05);
 
   const prompt = `Generate a short story in ${language} for a ${level} language learner.
 
-**Requirements:**
-- Word count: approximately ${word_count_target} words
-- Use ONLY words from the provided vocabulary list
-- The story should be engaging and natural
-- Topic: ${topic || "any interesting topic"}
-${wordSelection.newWords.length > 0 ? `- Include ALL new words naturally in the story` : ""}
+**🚨 CRITICAL: 95% KNOWN / 5% NEW WORD RATIO 🚨**
+This is COMPREHENSIBLE INPUT - the learner MUST understand 95% of the story!
 
-**Vocabulary to use (REQUIRED):**
-${vocabularyToUse.join(", ")}
+**EXACT WORD COUNT REQUIREMENTS:**
+- Total story length: ~${word_count_target} words
+- Words from KNOWN list: ~${targetKnownWordOccurrences} words (95%)
+- Words from NEW list: ~${targetNewWordOccurrences} words MAXIMUM (5%)
+
+**ABSOLUTE VOCABULARY RESTRICTION:**
+You are STRICTLY FORBIDDEN from using ANY words outside these two lists:
+1. KNOWN vocabulary list (${knownWordCount} words) - USE THESE FOR 95% OF THE STORY
+2. NEW vocabulary list (${newWordCount} words) - USE THESE FOR ONLY 5% OF THE STORY
+
+DO NOT use synonyms, DO NOT use related words, DO NOT add "just one more word" that seems useful.
+If a word is not explicitly listed below, you CANNOT use it (except basic articles: le/la/les/un/une/des, and basic conjunctions: et/ou/mais).
+
+**KNOWN Vocabulary - USE THESE FOR 95% OF ALL WORDS (${knownWordCount} words available):**
+${[...wordSelection.knownWords, ...wordSelection.reviewWords].join(", ") || vocabularyToUse.join(", ")}
 
 ${
   wordSelection.newWords.length > 0
-    ? `**New words to introduce (must appear in story):**
-${wordSelection.newWords.join(", ")}`
-    : ""
+    ? `**NEW Vocabulary - USE THESE FOR ONLY 5% OF ALL WORDS (${newWordCount} new words):**
+${wordSelection.newWords.join(", ")}
+
+IMPORTANT: Each new word should appear 2-3 times in the story to reach the 5% ratio, but NO additional unknown words beyond this list.`
+    : "**NEW Vocabulary: NONE - Use only known words**"
 }
 
-**Important guidelines:**
-1. Use simple sentence structures appropriate for ${level} level
-2. Each new word should appear at least once, ideally 2-3 times
-3. New words should be understandable from context
-4. The story should be coherent and interesting
-5. Use only the vocabulary provided - do not add complex words
-6. Make the story relevant and engaging for adult learners
+**VERIFICATION CHECKLIST - YOU MUST:**
+✓ Count every content word in your story
+✓ Verify 95% come from the KNOWN list
+✓ Verify only 5% come from the NEW list
+✓ Confirm NO words appear that aren't in either list (except le/la/les/un/une/des/et/ou/mais)
+✓ Make the story engaging and natural despite these strict constraints
 
-Please write the story now. Return ONLY the story text in ${language}, no additional commentary.`;
+**STORY REQUIREMENTS:**
+- Topic: ${topic || "everyday situations, simple narratives, or common experiences"}
+- Level: ${level} - use appropriate grammar and sentence structures
+- Make new words understandable from context
+- Tell a complete, coherent, interesting mini-narrative
+- Engage adult learners with relatable content
+
+Write the story now. Return ONLY the story text in ${language}, no commentary.`;
 
   return prompt;
 }

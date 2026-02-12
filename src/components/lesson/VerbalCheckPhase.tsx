@@ -85,21 +85,25 @@ export function VerbalCheckPhase({
     setIsTranscribing(true);
 
     try {
-      // In production, send to Whisper API
-      // For now, simulate with placeholder
-      // const formData = new FormData();
-      // formData.append('audio', blob);
-      // const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
-      // const data = await response.json();
-      // setTranscript(data.text);
+      // Send to Whisper API for transcription
+      const formData = new FormData();
+      formData.append("audio", blob);
+      formData.append("language", lesson.language || "fr");
 
-      // Placeholder for demo
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setTranscript(
-        "[Your spoken response will appear here after transcription]",
-      );
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Transcription failed");
+      }
+
+      const data = await response.json();
+      setTranscript(data.text || "");
     } catch (error) {
       console.error("Transcription error:", error);
+      setTranscript("[Transcription failed - please try again]");
     } finally {
       setIsTranscribing(false);
     }

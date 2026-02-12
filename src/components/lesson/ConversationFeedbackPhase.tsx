@@ -130,11 +130,32 @@ export function ConversationFeedbackPhase({
   };
 
   const handleUserResponse = async (audioBlob: Blob) => {
-    // Add user turn (in production, transcribe first)
+    // Transcribe the audio first
+    let transcribedText = "[Unable to transcribe]";
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob);
+      formData.append("language", lesson.language || "fr");
+
+      const transcribeResponse = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (transcribeResponse.ok) {
+        const transcribeData = await transcribeResponse.json();
+        transcribedText = transcribeData.text || transcribedText;
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+    }
+
+    // Add user turn with transcribed text
     const userTurn: ConversationTurn = {
       id: `turn-${Date.now()}`,
       role: "user",
-      text: "[Your response]", // Would be transcribed
+      text: transcribedText,
       audioUrl: URL.createObjectURL(audioBlob),
       timestamp: new Date().toISOString(),
     };
@@ -142,64 +163,81 @@ export function ConversationFeedbackPhase({
     setTurns((prev) => [...prev, userTurn]);
     setTurnCount((prev) => prev + 1);
 
-    // Generate assistant response
-    await generateAssistantResponse();
+    // Generate assistant response using OpenAI
+    await generateAssistantResponse(transcribedText, [...turns, userTurn]);
   };
 
-  const generateAssistantResponse = async () => {
-    // Simulate thinking delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  const generateAssistantResponse = async (
+    userResponse: string,
+    currentTurns: ConversationTurn[],
+  ) => {
+    try {
+      const response = await fetch("/api/lesson/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetText: lesson.targetText,
+          translation: lesson.translation,
+          userResponse,
+          conversationHistory: currentTurns.map((t) => ({
+            role: t.role,
+            text: t.text,
+          })),
+          level: lesson.level,
+        }),
+      });
 
-    const userTurnCount = turns.filter((t) => t.role === "user").length + 1;
-    let responseText: string;
-    let questionType: ConversationTurn["questionType"] = "comprehension";
-    let vocabularyFocus: string[] | undefined;
+      let feedback;
+      if (response.ok) {
+        feedback = await response.json();
+      } else {
+        throw new Error("Failed to generate feedback");
+      }
 
-    // Logic for response generation
-    if (userTurnCount === 1) {
-      // After first response, ask for more details
-      responseText = CONVERSATION_PROMPTS.followUp[0];
-      questionType = "expansion";
-    } else if (userTurnCount === 2) {
-      // Introduce vocabulary hint
-      const newWord = lesson.words.find((w) => w.isNew);
-      if (newWord) {
-        responseText = `${CONVERSATION_PROMPTS.vocabulary[0]} "${newWord.word}" means "${newWord.translation || "see context"}". Did you hear this word?`;
-        questionType = "vocabulary";
-        vocabularyFocus = [newWord.word];
+      // Handle vocabulary hint if provided
+      if (feedback.vocabularyHint) {
         setCurrentHint({
-          word: newWord.word,
-          translation: newWord.translation || "",
-          context: "",
+          word: feedback.vocabularyHint.word,
+          translation: feedback.vocabularyHint.translation,
+          context: feedback.vocabularyHint.context || "",
           hint: "",
         });
-      } else {
-        responseText = CONVERSATION_PROMPTS.followUp[1];
       }
-    } else {
-      // Encouragement and wrap-up
-      responseText =
-        CONVERSATION_PROMPTS.encouragement[
-          Math.min(
-            userTurnCount - 3,
-            CONVERSATION_PROMPTS.encouragement.length - 1,
-          )
-        ];
-      if (userTurnCount >= MIN_TURNS) {
+
+      const userTurnCount = currentTurns.filter(
+        (t) => t.role === "user",
+      ).length;
+      let responseText = feedback.response;
+
+      // Add wrap-up prompt if enough turns
+      if (userTurnCount >= MIN_TURNS && !responseText.includes("Ready to")) {
         responseText += " You've done great work! Ready to see the text?";
       }
+
+      const assistantTurn: ConversationTurn = {
+        id: `turn-${Date.now()}`,
+        role: "assistant",
+        text: responseText,
+        timestamp: new Date().toISOString(),
+        questionType: feedback.questionType || "comprehension",
+        vocabularyFocus: feedback.vocabularyHint
+          ? [feedback.vocabularyHint.word]
+          : undefined,
+      };
+
+      setTurns((prev) => [...prev, assistantTurn]);
+    } catch (error) {
+      console.error("Error generating feedback:", error);
+      // Fallback response
+      const fallbackTurn: ConversationTurn = {
+        id: `turn-${Date.now()}`,
+        role: "assistant",
+        text: "Thank you for sharing! What else did you notice about the audio?",
+        timestamp: new Date().toISOString(),
+        questionType: "comprehension",
+      };
+      setTurns((prev) => [...prev, fallbackTurn]);
     }
-
-    const assistantTurn: ConversationTurn = {
-      id: `turn-${Date.now()}`,
-      role: "assistant",
-      text: responseText,
-      timestamp: new Date().toISOString(),
-      questionType,
-      vocabularyFocus,
-    };
-
-    setTurns((prev) => [...prev, assistantTurn]);
   };
 
   const requestHint = () => {

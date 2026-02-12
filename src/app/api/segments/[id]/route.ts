@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import segments from "@/data/segments.json";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const segment = segments.find((s) => s.id === params.id);
+  try {
+    const supabase = await createClient();
 
-  if (!segment) {
-    return NextResponse.json({ error: "Segment not found" }, { status: 404 });
+    const { data: segment, error } = await supabase
+      .from("content_segments")
+      .select("*")
+      .eq("id", params.id)
+      .single();
+
+    if (error || !segment) {
+      return NextResponse.json({ error: "Segment not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(segment);
+  } catch (error) {
+    console.error("Error fetching segment:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json(segment);
 }

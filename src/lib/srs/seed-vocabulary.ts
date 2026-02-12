@@ -1,381 +1,112 @@
 /**
  * Seed script to populate user's initial French vocabulary
- * Run this to give new users a head start with common words
+ * Seeds known words based on placement test level:
+ * - A1: 50 words, A2: 200 words, B1: 300 words, B2: 500 words, C1: 750 words
  *
- * Usage (in browser console or as API endpoint):
- * - Navigate to /learn/srs
- * - Open browser console
- * - Copy and paste this script
- * - Or create an API endpoint that calls these functions
+ * Run automatically after placement test completion
  */
 
 import { createClient } from "@/lib/supabase/client";
+import commonFrenchWords from "@/data/common-french-words.json";
+import { ProficiencyLevel } from "@/types";
 
 /**
- * Most common 200 French words for beginners
- * These are high-frequency words that appear in everyday conversation
+ * Level to word count allocation
+ * Based on placement test results, users get this many known words
  */
-export const COMMON_FRENCH_WORDS_A0_A1 = [
-  // Articles & Pronouns (20)
-  "le",
-  "la",
-  "les",
-  "un",
-  "une",
-  "des",
-  "je",
-  "tu",
-  "il",
-  "elle",
-  "nous",
-  "vous",
-  "ils",
-  "elles",
-  "on",
-  "ce",
-  "qui",
-  "que",
-  "quoi",
-  "dont",
-
-  // Essential Verbs (30)
-  "être",
-  "avoir",
-  "faire",
-  "dire",
-  "aller",
-  "voir",
-  "savoir",
-  "pouvoir",
-  "vouloir",
-  "venir",
-  "falloir",
-  "devoir",
-  "prendre",
-  "donner",
-  "mettre",
-  "parler",
-  "passer",
-  "demander",
-  "trouver",
-  "aimer",
-  "regarder",
-  "appeler",
-  "laisser",
-  "suivre",
-  "vivre",
-  "tenir",
-  "porter",
-  "arriver",
-  "croire",
-  "penser",
-
-  // Common Nouns (50)
-  "homme",
-  "femme",
-  "enfant",
-  "personne",
-  "ami",
-  "famille",
-  "jour",
-  "année",
-  "temps",
-  "heure",
-  "moment",
-  "fois",
-  "chose",
-  "vie",
-  "monde",
-  "pays",
-  "ville",
-  "maison",
-  "chambre",
-  "porte",
-  "main",
-  "œil",
-  "tête",
-  "corps",
-  "cœur",
-  "voix",
-  "mot",
-  "nom",
-  "question",
-  "réponse",
-  "travail",
-  "école",
-  "livre",
-  "table",
-  "chaise",
-  "rue",
-  "eau",
-  "pain",
-  "café",
-  "argent",
-  "monsieur",
-  "madame",
-  "père",
-  "mère",
-  "fils",
-  "fille",
-  "frère",
-  "sœur",
-  "chat",
-  "chien",
-
-  // Adjectives (30)
-  "bon",
-  "mauvais",
-  "grand",
-  "petit",
-  "jeune",
-  "vieux",
-  "beau",
-  "joli",
-  "nouveau",
-  "autre",
-  "même",
-  "tout",
-  "bien",
-  "mal",
-  "mieux",
-  "pire",
-  "facile",
-  "difficile",
-  "important",
-  "possible",
-  "impossible",
-  "nécessaire",
-  "heureux",
-  "triste",
-  "content",
-  "fâché",
-  "fatigué",
-  "chaud",
-  "froid",
-  "blanc",
-  "noir",
-
-  // Prepositions & Conjunctions (25)
-  "de",
-  "à",
-  "dans",
-  "pour",
-  "sur",
-  "avec",
-  "sans",
-  "sous",
-  "entre",
-  "devant",
-  "derrière",
-  "avant",
-  "après",
-  "pendant",
-  "depuis",
-  "jusqu'à",
-  "vers",
-  "chez",
-  "et",
-  "ou",
-  "mais",
-  "donc",
-  "car",
-  "parce",
-  "que",
-
-  // Adverbs & Others (25)
-  "très",
-  "bien",
-  "mal",
-  "beaucoup",
-  "peu",
-  "plus",
-  "moins",
-  "assez",
-  "trop",
-  "aussi",
-  "encore",
-  "déjà",
-  "toujours",
-  "jamais",
-  "souvent",
-  "parfois",
-  "maintenant",
-  "aujourd'hui",
-  "hier",
-  "demain",
-  "ici",
-  "là",
-  "où",
-  "comment",
-  "pourquoi",
-
-  // Numbers (20)
-  "un",
-  "deux",
-  "trois",
-  "quatre",
-  "cinq",
-  "six",
-  "sept",
-  "huit",
-  "neuf",
-  "dix",
-  "vingt",
-  "trente",
-  "cent",
-  "mille",
-  "premier",
-  "deuxième",
-  "dernier",
-  "prochain",
-  "suivant",
-  "autre",
-];
-
-/**
- * A2-B1 intermediate words
- */
-export const COMMON_FRENCH_WORDS_A2_B1 = [
-  // Verbs
-  "comprendre",
-  "expliquer",
-  "commencer",
-  "finir",
-  "continuer",
-  "réussir",
-  "échouer",
-  "apprendre",
-  "enseigner",
-  "étudier",
-  "travailler",
-  "jouer",
-  "gagner",
-  "perdre",
-  "acheter",
-  "vendre",
-  "payer",
-  "coûter",
-  "manger",
-  "boire",
-
-  // Nouns
-  "problème",
-  "solution",
-  "idée",
-  "pensée",
-  "sentiment",
-  "raison",
-  "exemple",
-  "manière",
-  "façon",
-  "fois",
-  "début",
-  "fin",
-  "milieu",
-  "centre",
-  "côté",
-  "partie",
-  "endroit",
-  "place",
-  "lieu",
-  "espace",
-
-  // Adjectives
-  "intéressant",
-  "important",
-  "différent",
-  "pareil",
-  "même",
-  "simple",
-  "compliqué",
-  "facile",
-  "difficile",
-  "rapide",
-  "lent",
-  "fort",
-  "faible",
-  "plein",
-  "vide",
-];
-
-/**
- * Word frequency rankings (approximate)
- * Lower number = more common
- */
-const WORD_FREQUENCIES: Record<string, number> = {
-  // Top 50 most common
-  le: 1,
-  de: 2,
-  un: 3,
-  être: 4,
-  et: 5,
-  à: 6,
-  il: 7,
-  avoir: 8,
-  ne: 9,
-  je: 10,
-  // ... (simplified for brevity)
+export const LEVEL_WORD_ALLOCATION: Record<ProficiencyLevel, number> = {
+  A0: 0, // Complete beginners start with no known words
+  A1: 50,
+  A2: 200,
+  B1: 300,
+  B2: 500,
+  C1: 750,
+  C2: 1000,
 };
 
 /**
- * Seed user vocabulary with common words
+ * Get words for a specific level from the common words list
+ */
+export function getWordsForLevel(
+  level: ProficiencyLevel,
+): typeof commonFrenchWords.words {
+  const wordCount = LEVEL_WORD_ALLOCATION[level] || 0;
+  return commonFrenchWords.words.slice(0, wordCount);
+}
+
+/**
+ * Get all 1000 common French words
+ */
+export function getAllCommonWords(): typeof commonFrenchWords.words {
+  return commonFrenchWords.words;
+}
+
+/**
+ * Get just the word strings for a level (useful for story generation)
+ */
+export function getWordStringsForLevel(level: ProficiencyLevel): string[] {
+  return getWordsForLevel(level).map((w) => w.word);
+}
+
+// Legacy exports for backwards compatibility
+export const COMMON_FRENCH_WORDS_A0_A1 = commonFrenchWords.words
+  .slice(0, 200)
+  .map((w) => w.word);
+export const COMMON_FRENCH_WORDS_A2_B1 = commonFrenchWords.words
+  .slice(200, 350)
+  .map((w) => w.word);
+
+/**
+ * Seed user vocabulary with known words based on placement level
+ * Words are marked as "known" status with proper SRS data
  */
 export async function seedUserVocabulary(
   userId: string,
-  level: "A0" | "A1" | "A2" | "B1" = "A1",
+  level: ProficiencyLevel,
   language: string = "fr",
 ) {
   const supabase = createClient();
+  const wordsToSeed = getWordsForLevel(level);
 
-  let wordsToSeed: string[] = [];
-
-  // Select words based on level
-  switch (level) {
-    case "A0":
-      wordsToSeed = COMMON_FRENCH_WORDS_A0_A1.slice(0, 50);
-      break;
-    case "A1":
-      wordsToSeed = COMMON_FRENCH_WORDS_A0_A1.slice(0, 100);
-      break;
-    case "A2":
-      wordsToSeed = [
-        ...COMMON_FRENCH_WORDS_A0_A1,
-        ...COMMON_FRENCH_WORDS_A2_B1.slice(0, 50),
-      ];
-      break;
-    case "B1":
-      wordsToSeed = [
-        ...COMMON_FRENCH_WORDS_A0_A1,
-        ...COMMON_FRENCH_WORDS_A2_B1,
-      ];
-      break;
+  if (wordsToSeed.length === 0) {
+    console.log(`Level ${level} has no words to seed`);
+    return 0;
   }
 
-  // Prepare insert data
+  // Prepare insert data - these are KNOWN words from placement
   const now = new Date().toISOString();
-  const wordsData = wordsToSeed.map((word, index) => ({
+  // Set next review far in the future since these are already known
+  const futureReview = new Date(
+    Date.now() + 30 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+
+  const wordsData = wordsToSeed.map((wordData) => ({
     user_id: userId,
-    word: word,
-    lemma: word,
+    word: wordData.word,
+    lemma: wordData.lemma,
     language: language,
+    part_of_speech: wordData.pos,
+    frequency_rank: wordData.rank,
+    // Mark as known with solid SRS data
+    status: "known",
     easiness_factor: 2.5,
-    repetitions: 0,
-    interval_days: 0,
-    next_review: now,
-    status: "new",
-    times_seen: 0,
-    times_rated: 0,
+    repetitions: 5, // Already known means they've effectively reviewed it
+    interval_days: 30,
+    next_review: futureReview,
+    times_seen: 5,
+    times_rated: 5,
     first_seen: now,
     last_seen: now,
-    frequency_rank: WORD_FREQUENCIES[word] || 1000 + index,
   }));
 
   // Insert in batches to avoid timeout
-  const batchSize = 50;
+  const batchSize = 100;
+  let totalInserted = 0;
+
   for (let i = 0; i < wordsData.length; i += batchSize) {
     const batch = wordsData.slice(i, i + batchSize);
 
-    const { error } = await supabase.from("user_words").upsert(batch, {
+    const { error, data } = await supabase.from("user_words").upsert(batch, {
       onConflict: "user_id,word,language",
       ignoreDuplicates: true,
     });
@@ -384,16 +115,18 @@ export async function seedUserVocabulary(
       console.error(`Error seeding batch ${i / batchSize + 1}:`, error);
       throw error;
     }
+
+    totalInserted += batch.length;
   }
 
   console.log(
-    `Successfully seeded ${wordsData.length} words for user ${userId}`,
+    `Successfully seeded ${totalInserted} known words for user ${userId} at level ${level}`,
   );
-  return wordsData.length;
+  return totalInserted;
 }
 
 /**
- * Mark certain words as "known" to simulate learning progress
+ * Mark specific words as known (for manual updates)
  */
 export async function markWordsAsKnown(
   userId: string,
@@ -401,49 +134,77 @@ export async function markWordsAsKnown(
   language: string = "fr",
 ) {
   const supabase = createClient();
+  const futureReview = new Date(
+    Date.now() + 30 * 24 * 60 * 60 * 1000,
+  ).toISOString();
 
-  for (const word of words) {
-    const { error } = await supabase
-      .from("user_words")
-      .update({
-        status: "known",
-        repetitions: 5,
-        easiness_factor: 2.5,
-        interval_days: 30,
-        next_review: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        times_rated: 5,
-      })
-      .eq("user_id", userId)
-      .eq("word", word)
-      .eq("language", language);
+  const { error } = await supabase
+    .from("user_words")
+    .update({
+      status: "known",
+      repetitions: 5,
+      easiness_factor: 2.5,
+      interval_days: 30,
+      next_review: futureReview,
+      times_rated: 5,
+    })
+    .eq("user_id", userId)
+    .eq("language", language)
+    .in("word", words);
 
-    if (error) {
-      console.error(`Error updating word ${word}:`, error);
-    }
+  if (error) {
+    console.error("Error marking words as known:", error);
+    throw error;
   }
 
   console.log(`Marked ${words.length} words as known`);
+  return words.length;
 }
 
 /**
- * Example usage in a Next.js API route
+ * Get user's known words count
  */
-export const seedExample = {
-  async handler(userId: string) {
-    try {
-      // Seed initial vocabulary
-      await seedUserVocabulary(userId, "A1", "fr");
+export async function getKnownWordCount(
+  userId: string,
+  language: string = "fr",
+): Promise<number> {
+  const supabase = createClient();
 
-      // Mark most common 20 words as already known
-      const knownWords = COMMON_FRENCH_WORDS_A0_A1.slice(0, 20);
-      await markWordsAsKnown(userId, knownWords, "fr");
+  const { count, error } = await supabase
+    .from("user_words")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("language", language)
+    .in("status", ["known", "mastered"]);
 
-      return { success: true };
-    } catch (error) {
-      console.error("Seeding error:", error);
-      return { success: false, error };
-    }
-  },
-};
+  if (error) {
+    console.error("Error getting known word count:", error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Get user's known word strings (for story generation)
+ */
+export async function getUserKnownWords(
+  userId: string,
+  language: string = "fr",
+): Promise<string[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("user_words")
+    .select("word")
+    .eq("user_id", userId)
+    .eq("language", language)
+    .in("status", ["known", "mastered", "learning"]);
+
+  if (error) {
+    console.error("Error getting known words:", error);
+    return [];
+  }
+
+  return data?.map((w) => w.word) || [];
+}

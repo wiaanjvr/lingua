@@ -175,7 +175,7 @@ export function AudioComprehensionPhase({
             <Button
               size="lg"
               onClick={togglePlayPause}
-              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full"
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full text-white"
             >
               {isPlaying ? (
                 <Pause className="h-5 w-5 sm:h-6 sm:w-6" />

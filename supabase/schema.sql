@@ -182,11 +182,12 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Storage buckets for user avatars and audio recordings
+-- Storage buckets for user avatars, audio recordings, and lesson audio
 INSERT INTO storage.buckets (id, name, public) 
 VALUES 
   ('avatars', 'avatars', true),
-  ('recordings', 'recordings', false)
+  ('recordings', 'recordings', false),
+  ('lesson-audio', 'lesson-audio', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies for avatars bucket
@@ -234,6 +235,32 @@ CREATE POLICY "Users can delete their own recordings"
   ON storage.objects FOR DELETE 
   USING (
     bucket_id = 'recordings' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Storage policies for lesson-audio bucket (public read, authenticated users can upload their own)
+CREATE POLICY "Lesson audio is publicly accessible" 
+  ON storage.objects FOR SELECT 
+  USING (bucket_id = 'lesson-audio');
+
+CREATE POLICY "Users can upload their own lesson audio" 
+  ON storage.objects FOR INSERT 
+  WITH CHECK (
+    bucket_id = 'lesson-audio' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users can update their own lesson audio" 
+  ON storage.objects FOR UPDATE 
+  USING (
+    bucket_id = 'lesson-audio' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users can delete their own lesson audio" 
+  ON storage.objects FOR DELETE 
+  USING (
+    bucket_id = 'lesson-audio' AND 
     auth.uid()::text = (storage.foldername(name))[1]
   );
 

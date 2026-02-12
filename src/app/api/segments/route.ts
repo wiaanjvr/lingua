@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import segments from "@/data/segments.json";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,31 +11,55 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "10");
   const excludeIds = searchParams.get("exclude")?.split(",") || [];
 
-  // Filter segments
-  let filteredSegments = segments.filter((segment) => {
-    if (level && segment.level !== level) return false;
-    if (topic && segment.topic !== topic) return false;
-    if (excludeIds.includes(segment.id)) return false;
-    return true;
-  });
+  try {
+    const supabase = await createClient();
 
-  // Calculate pagination
-  const total = filteredSegments.length;
-  const totalPages = Math.ceil(total / limit);
-  const start = (page - 1) * limit;
-  const end = start + limit;
+    // Build query
+    let query = supabase
+      .from("content_segments")
+      .select("*", { count: "exact" });
 
-  const paginatedSegments = filteredSegments.slice(start, end);
+    // Apply filters
+    if (level) {
+      query = query.eq("level", level);
+    }
+    if (topic) {
+      query = query.eq("topic", topic);
+    }
+    if (excludeIds.length > 0 && excludeIds[0] !== "") {
+      query = query.not("id", "in", `(${excludeIds.join(",")})`);
+    }
 
-  // Return paginated response
-  return NextResponse.json({
-    segments: paginatedSegments,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages,
-      hasMore: page < totalPages,
-    },
-  });
+    // Apply pagination
+    const start = (page - 1) * limit;
+    query = query.range(start, start + limit - 1);
+
+    const { data: segments, count, error } = await query;
+
+    if (error) {
+      console.error("Error fetching segments:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const total = count || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Return paginated response
+    return NextResponse.json({
+      segments: segments || [],
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error in segments API:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }
