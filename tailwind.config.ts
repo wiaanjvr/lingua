@@ -43,9 +43,13 @@ const config: Config = {
           foreground: "hsl(var(--destructive-foreground))",
         },
         luxury: {
-          gold: "hsl(var(--luxury-gold))",
-          silver: "hsl(var(--luxury-silver))",
+          cognac: "hsl(var(--luxury-cognac))",
+          "cognac-light": "hsl(var(--luxury-cognac-light))",
+          champagne: "hsl(var(--luxury-champagne))",
+          carbon: "hsl(var(--luxury-carbon))",
+          chrome: "hsl(var(--luxury-chrome))",
           bronze: "hsl(var(--luxury-bronze))",
+          amber: "hsl(var(--luxury-amber))",
         },
       },
       borderRadius: {

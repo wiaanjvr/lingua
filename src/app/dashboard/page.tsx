@@ -12,13 +12,44 @@ import {
   Calendar,
   Clock,
   ChevronRight,
+  BookOpen,
+  Star,
+  Sparkles,
+  Brain,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { getLevelLabel } from "@/lib/placement/scoring";
+import { ProficiencyLevel, WordStatus } from "@/types";
+import {
+  checkProficiencyUpdate,
+  getProficiencyProgress,
+} from "@/lib/srs/proficiency-calculator";
+import { cn } from "@/lib/utils";
+
+interface VocabularyWord {
+  id: string;
+  word: string;
+  lemma: string;
+  status: WordStatus;
+  rating: number;
+  next_review: string;
+}
+
+interface VocabularyStats {
+  new: number;
+  learning: number;
+  known: number;
+  mastered: number;
+  total: number;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
   const [sessionsToday, setSessionsToday] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const maxSessionsFree = 1;
 
   const [stats, setStats] = useState({
@@ -29,6 +60,21 @@ export default function DashboardPage() {
     avgComprehension: 0,
     wordsEncountered: 0,
   });
+  const [vocabularyStats, setVocabularyStats] = useState<VocabularyStats>({
+    new: 0,
+    learning: 0,
+    known: 0,
+    mastered: 0,
+    total: 0,
+  });
+  const [vocabularyWords, setVocabularyWords] = useState<VocabularyWord[]>([]);
+  const [showVocabulary, setShowVocabulary] = useState(false);
+  const [vocabFilter, setVocabFilter] = useState<WordStatus | "all">("all");
+  const [proficiencyProgress, setProficiencyProgress] = useState<{
+    nextLevel: ProficiencyLevel | null;
+    wordsNeeded: number;
+    progress: number;
+  } | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,23 +84,38 @@ export default function DashboardPage() {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          router.push("/auth/login");
+          router.replace("/auth/login");
           return;
         }
 
-        // Fetch profile with metrics
+        // Check if user just completed onboarding (prevents redirect loop)
+        const justCompletedOnboarding =
+          typeof window !== "undefined" &&
+          sessionStorage.getItem("onboarding_completed") === "true";
+
+        if (justCompletedOnboarding) {
+          console.log("Dashboard: User just completed onboarding, clearing flag");
+          sessionStorage.removeItem("onboarding_completed");
+          // Skip the interests check this time, let the user through
+          setAuthChecked(true);
+        }
+
+        // Fetch profile with metrics AND interests to check onboarding status
+        // Force fresh data to avoid cache issues after onboarding
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select(
-            "streak, total_practice_minutes, sessions_completed, proficiency_level",
+            "streak, total_practice_minutes, sessions_completed, proficiency_level, interests",
           )
           .eq("id", user.id)
           .single();
 
+        console.log("Dashboard: Profile query result:", { profile, profileError });
+
         if (profileError) {
           console.error("Error fetching profile:", profileError);
 
-          // Handle missing profile - create one
+          // Handle missing profile - create one and redirect to onboarding
           if (profileError.code === "PGRST116") {
             // Profile doesn't exist, create it
             const { error: insertError } = await supabase
@@ -75,9 +136,10 @@ export default function DashboardPage() {
             if (insertError) {
               console.error("Error creating profile:", insertError);
               setDbError(`Profile creation failed: ${insertError.message}`);
+              setAuthChecked(true);
             } else {
-              // Profile created, redirect to onboarding
-              router.push("/onboarding");
+              // Profile created, redirect to onboarding immediately
+              router.replace("/onboarding");
               return;
             }
           } else if (
@@ -87,9 +149,29 @@ export default function DashboardPage() {
             setDbError(
               "Database migration needed. Please run the add_lesson_metrics.sql migration.",
             );
+            setAuthChecked(true);
           } else {
             setDbError(profileError.message);
+            setAuthChecked(true);
           }
+        } else {
+          // Profile exists - check if onboarding was completed (unless we just came from there)
+          if (!justCompletedOnboarding) {
+            // Onboarding requires 3+ interests, so check for that
+            const interests = profile?.interests || [];
+            console.log("Dashboard: Loaded profile interests:", interests);
+            
+            if (!interests || interests.length < 3) {
+              // User hasn't completed onboarding (placement test + interests)
+              console.log(
+                "Dashboard: Interests incomplete, redirecting to onboarding",
+              );
+              router.replace("/onboarding");
+              return;
+            }
+          }
+          console.log("Dashboard: Onboarding complete, loading dashboard");
+          setAuthChecked(true);
         }
 
         // Count sessions completed today
@@ -130,24 +212,81 @@ export default function DashboardPage() {
         }
 
         // Get words encountered count from user_words table
-        const { count: wordsCount } = await supabase
+        const { data: allWords, error: wordsError } = await supabase
           .from("user_words")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id);
+          .select("id, word, lemma, status, rating, next_review")
+          .eq("user_id", user.id)
+          .order("status", { ascending: false })
+          .order("word", { ascending: true });
+
+        const wordsCount = allWords?.length || 0;
+
+        // Calculate vocabulary stats by status
+        const vocabStats: VocabularyStats = {
+          new: 0,
+          learning: 0,
+          known: 0,
+          mastered: 0,
+          total: wordsCount,
+        };
+
+        if (allWords) {
+          allWords.forEach((word) => {
+            const status = word.status as WordStatus;
+            if (status in vocabStats) {
+              vocabStats[status]++;
+            }
+          });
+          setVocabularyWords(allWords as VocabularyWord[]);
+        }
+
+        setVocabularyStats(vocabStats);
+
+        // Check if proficiency level should be updated based on vocabulary
+        const currentLevel = (profile?.proficiency_level ||
+          "A1") as ProficiencyLevel;
+        const newLevel = checkProficiencyUpdate(
+          currentLevel,
+          vocabStats.known,
+          vocabStats.mastered,
+        );
+
+        // If proficiency should be updated, update it in the database
+        let finalLevel = currentLevel;
+        if (newLevel) {
+          await supabase
+            .from("profiles")
+            .update({ proficiency_level: newLevel })
+            .eq("id", user.id);
+          finalLevel = newLevel;
+        }
+
+        // Get progress to next level (using the actual profile level)
+        const progress = getProficiencyProgress(
+          finalLevel,
+          vocabStats.known,
+          vocabStats.mastered,
+        );
+        setProficiencyProgress({
+          nextLevel: progress.nextLevel,
+          wordsNeeded: progress.wordsNeeded,
+          progress: progress.progress,
+        });
 
         setStats({
           totalSessions: profile?.sessions_completed || 0,
-          currentLevel: profile?.proficiency_level || "A1",
+          currentLevel: finalLevel,
           streak: profile?.streak || 0,
           totalTime: profile?.total_practice_minutes || 0,
           avgComprehension,
-          wordsEncountered: wordsCount || 0,
+          wordsEncountered: wordsCount,
         });
 
         setSessionsToday(todayCount || 0);
       } catch (error) {
         console.error("Error fetching stats:", error);
         setDbError(error instanceof Error ? error.message : "Unknown error");
+        setAuthChecked(true);
       } finally {
         setLoading(false);
       }
@@ -155,6 +294,20 @@ export default function DashboardPage() {
 
     fetchUserStats();
   }, [supabase, router]);
+
+  // Show loading state until auth and onboarding status are checked
+  if (!authChecked || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground font-light">
+            Loading your dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -214,7 +367,7 @@ export default function DashboardPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Session Card */}
           <div className="lg:col-span-2">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 dark:from-zinc-800 dark:via-zinc-900 dark:to-black text-white shadow-luxury-lg p-10">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 dark:from-zinc-800 dark:via-zinc-900 dark:to-black text-white shadow-luxury-lg p-10 min-h-[420px]">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24" />
 
@@ -288,7 +441,7 @@ export default function DashboardPage() {
                 {stats.currentLevel}
               </div>
               <p className="text-xs text-muted-foreground font-light">
-                Beginner
+                {getLevelLabel(stats.currentLevel as ProficiencyLevel)}
               </p>
             </div>
 
@@ -372,6 +525,210 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Vocabulary Section */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-light tracking-tight">
+              Your Vocabulary
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVocabulary(!showVocabulary)}
+              className="gap-2"
+            >
+              {showVocabulary ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Hide Words
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Show All Words
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Vocabulary Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <button
+              onClick={() =>
+                setVocabFilter(vocabFilter === "mastered" ? "all" : "mastered")
+              }
+              className={cn(
+                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
+                vocabFilter === "mastered" && "ring-2 ring-primary",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="h-4 w-4 text-yellow-500" />
+                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
+                  Mastered
+                </span>
+              </div>
+              <div className="text-2xl font-light">
+                {vocabularyStats.mastered}
+              </div>
+            </button>
+
+            <button
+              onClick={() =>
+                setVocabFilter(vocabFilter === "known" ? "all" : "known")
+              }
+              className={cn(
+                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
+                vocabFilter === "known" && "ring-2 ring-primary",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-green-500" />
+                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
+                  Known
+                </span>
+              </div>
+              <div className="text-2xl font-light">{vocabularyStats.known}</div>
+            </button>
+
+            <button
+              onClick={() =>
+                setVocabFilter(vocabFilter === "learning" ? "all" : "learning")
+              }
+              className={cn(
+                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
+                vocabFilter === "learning" && "ring-2 ring-primary",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className="h-4 w-4 text-blue-500" />
+                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
+                  Learning
+                </span>
+              </div>
+              <div className="text-2xl font-light">
+                {vocabularyStats.learning}
+              </div>
+            </button>
+
+            <button
+              onClick={() =>
+                setVocabFilter(vocabFilter === "new" ? "all" : "new")
+              }
+              className={cn(
+                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
+                vocabFilter === "new" && "ring-2 ring-primary",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="h-4 w-4 text-gray-500" />
+                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
+                  New
+                </span>
+              </div>
+              <div className="text-2xl font-light">{vocabularyStats.new}</div>
+            </button>
+          </div>
+
+          {/* Progress to Next Level */}
+          {proficiencyProgress?.nextLevel && (
+            <div className="card-luxury p-6 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-light">
+                  Progress to {proficiencyProgress.nextLevel}
+                </span>
+                <span className="text-sm text-muted-foreground font-light">
+                  {proficiencyProgress.wordsNeeded} words needed
+                </span>
+              </div>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-500"
+                  style={{ width: `${proficiencyProgress.progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Word List */}
+          {showVocabulary && (
+            <div className="card-luxury p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-muted-foreground font-light">
+                  {vocabFilter === "all"
+                    ? "All Words"
+                    : `${vocabFilter.charAt(0).toUpperCase() + vocabFilter.slice(1)} Words`}
+                </span>
+                {vocabFilter !== "all" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setVocabFilter("all")}
+                  >
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {vocabularyWords.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 font-light">
+                    No words yet. Start a lesson to build your vocabulary!
+                  </p>
+                ) : (
+                  <div className="grid gap-2">
+                    {vocabularyWords
+                      .filter(
+                        (word) =>
+                          vocabFilter === "all" || word.status === vocabFilter,
+                      )
+                      .map((word) => (
+                        <div
+                          key={word.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={cn(
+                                "w-2 h-2 rounded-full",
+                                word.status === "mastered" && "bg-yellow-500",
+                                word.status === "known" && "bg-green-500",
+                                word.status === "learning" && "bg-blue-500",
+                                word.status === "new" && "bg-gray-400",
+                              )}
+                            />
+                            <span className="font-medium">{word.word}</span>
+                            {word.lemma && word.lemma !== word.word && (
+                              <span className="text-xs text-muted-foreground">
+                                ({word.lemma})
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "text-xs px-2 py-1 rounded-full",
+                                word.status === "mastered" &&
+                                  "bg-yellow-500/10 text-yellow-600",
+                                word.status === "known" &&
+                                  "bg-green-500/10 text-green-600",
+                                word.status === "learning" &&
+                                  "bg-blue-500/10 text-blue-600",
+                                word.status === "new" &&
+                                  "bg-gray-500/10 text-gray-600",
+                              )}
+                            >
+                              {word.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

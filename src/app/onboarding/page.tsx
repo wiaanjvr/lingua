@@ -53,6 +53,9 @@ type OnboardingStep =
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const supabase = createClient();
+  const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const [step, setStep] = useState<OnboardingStep>("welcome");
   const [audioIndex, setAudioIndex] = useState(0);
   const [readingIndex, setReadingIndex] = useState(0);
@@ -63,10 +66,56 @@ export default function OnboardingPage() {
   );
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [completingOnboarding, setCompletingOnboarding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const audioItems = placementTestData.audioItems as AudioTestItem[];
   const readingItems = placementTestData.readingItems as ReadingTestItem[];
+
+  // Check auth and onboarding status on mount
+  useEffect(() => {
+    const checkAuthAndOnboarding = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          router.replace("/auth/login");
+          return;
+        }
+
+        // Check if user already completed onboarding
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("interests")
+          .eq("id", user.id)
+          .single();
+
+        // If profile exists and has interests (3 or more), onboarding is complete
+        if (profile?.interests && profile.interests.length >= 3) {
+          console.log(
+            "User has already completed onboarding, redirecting to dashboard",
+          );
+          router.replace("/dashboard");
+          return;
+        }
+
+        // User needs to complete onboarding
+        setAuthChecked(true);
+      } catch (error) {
+        console.error("Error checking auth:", error);
+        setAuthChecked(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only run the check once on mount
+    if (!authChecked && !completingOnboarding) {
+      checkAuthAndOnboarding();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   const totalSteps = 5;
   const currentStepNumber = {
@@ -134,7 +183,14 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     if (!testResults) return;
 
+    // Validate that at least 3 interests are selected (matches UI requirement)
+    if (selectedInterests.length < 3) {
+      setError("Please select at least 3 interests to continue.");
+      return;
+    }
+
     setSaving(true);
+    setCompletingOnboarding(true);
     setError(null);
 
     try {
@@ -148,21 +204,37 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Save user preferences to Supabase
-      const { error: updateError } = await supabase
+      // Save user preferences to Supabase and verify it was saved
+      const { data: updatedProfile, error: updateError } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: user.id,
+          email: user.email || "",
           proficiency_level: testResults.determinedLevel,
           interests: selectedInterests,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user.id);
+        .select("interests, proficiency_level")
+        .single();
 
       if (updateError) {
         console.error("Error saving preferences:", updateError);
         setError("Failed to save preferences. Please try again.");
+        setCompletingOnboarding(false);
         return;
       }
+
+      // Verify interests were actually saved
+      if (!updatedProfile?.interests || updatedProfile.interests.length === 0) {
+        console.error("Interests were not saved properly");
+        setError("Failed to save interests. Please try again.");
+        setCompletingOnboarding(false);
+        return;
+      }
+
+      console.log("Profile updated successfully:", updatedProfile);
+
+      console.log("Profile updated successfully:", updatedProfile);
 
       // Seed vocabulary based on placement level
       // This gives users known words proportional to their assessed level
@@ -180,10 +252,23 @@ export default function OnboardingPage() {
         console.error("Error seeding vocabulary:", seedError);
       }
 
-      router.push("/dashboard");
+      // Set a flag in sessionStorage to indicate onboarding just completed
+      // This helps the dashboard know not to redirect back
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("onboarding_completed", "true");
+      }
+
+      // Small delay to ensure database is fully committed before redirect
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      console.log("Redirecting to dashboard after onboarding completion");
+
+      // Use replace instead of push to prevent back navigation to onboarding
+      router.replace("/dashboard");
     } catch (err) {
       console.error("Onboarding error:", err);
       setError("An error occurred. Please try again.");
+      setCompletingOnboarding(false);
     } finally {
       setSaving(false);
     }
@@ -201,6 +286,20 @@ export default function OnboardingPage() {
     };
     return colors[level];
   };
+
+  // Show loading state until auth is checked
+  if (!authChecked || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground font-light">
+            Preparing your assessment...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">

@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { Lesson, LessonWord, GenerateLessonRequest } from "@/types/lesson";
+import {
+  Lesson,
+  LessonWord,
+  GenerateLessonRequest,
+  LessonVocabularyContext,
+} from "@/types/lesson";
 import { ProficiencyLevel } from "@/types";
 import OpenAI from "openai";
 import {
@@ -8,9 +13,24 @@ import {
   generateLessonPrompt,
   analyzeTextWords,
   calculateComprehension,
+  buildLessonContent,
   WORD_COUNT_BY_LEVEL,
   NEW_WORD_PERCENTAGE_BY_LEVEL,
 } from "@/lib/lesson/engine";
+
+// Template interface for cached lessons
+interface LessonTemplate {
+  id: string;
+  language: string;
+  level: string;
+  topic: string | null;
+  title: string;
+  target_text: string;
+  translation: string | null;
+  audio_url: string | null;
+  word_count: number;
+  times_used: number;
+}
 
 /**
  * Generate TTS audio for a lesson text and upload to Supabase Storage
@@ -152,7 +172,7 @@ export async function POST(request: NextRequest) {
     // Get user's profile for defaults
     const { data: profile } = await supabase
       .from("profiles")
-      .select("proficiency_level, target_language")
+      .select("proficiency_level, target_language, interests")
       .eq("id", user.id)
       .single();
 
@@ -162,6 +182,14 @@ export async function POST(request: NextRequest) {
     const targetLanguage = language || profile?.target_language || "fr";
     const wordCount = wordCountTarget || WORD_COUNT_BY_LEVEL[userLevel];
     const newWordPct = NEW_WORD_PERCENTAGE_BY_LEVEL[userLevel];
+
+    // Select a topic from user's interests if not explicitly provided
+    const userInterests = profile?.interests || [];
+    const selectedTopic =
+      topic ||
+      (userInterests.length > 0
+        ? userInterests[Math.floor(Math.random() * userInterests.length)]
+        : undefined);
 
     // Fetch user's known words
     const { data: userWords, error: wordsError } = await supabase
@@ -174,30 +202,117 @@ export async function POST(request: NextRequest) {
       console.error("Error fetching user words:", wordsError);
     }
 
-    // Select words for the lesson
-    const wordSelection = selectWordsForLesson(userWords || [], {
-      targetWordCount: wordCount,
-      newWordPercentage: newWordPct,
-      reviewWordPriority: prioritizeReview,
-    });
+    // ========================================
+    // TEMPLATE CACHING: Check for existing template
+    // ========================================
+    let lessonTitle: string;
+    let lessonText: string;
+    let translation: string;
+    let audioUrl: string;
+    let usedTemplate = false;
+    let templateId: string | null = null;
 
-    // Generate lesson text using OpenAI
-    const {
-      title: lessonTitle,
-      text: lessonText,
-      translation,
-    } = await generateLessonText(
-      openai,
-      wordSelection,
-      {
-        wordCount,
-        newWordPct,
-        prioritizeReview,
-        topic,
-      },
-      userLevel,
-      targetLanguage,
-    );
+    // Try to find an existing template with matching criteria
+    const { data: existingTemplate } = await supabase
+      .from("lesson_templates")
+      .select("*")
+      .eq("language", targetLanguage)
+      .eq("level", userLevel)
+      .eq("topic", selectedTopic || "")
+      .single();
+
+    // Generate lesson ID early (needed for audio)
+    const lessonId = `lesson-${Date.now()}`;
+
+    if (existingTemplate && existingTemplate.audio_url) {
+      // USE EXISTING TEMPLATE - saves OpenAI API calls!
+      console.log(
+        `Using cached template: ${existingTemplate.id} (used ${existingTemplate.times_used} times)`,
+      );
+
+      lessonTitle = existingTemplate.title;
+      lessonText = existingTemplate.target_text;
+      translation = existingTemplate.translation || "";
+      audioUrl = existingTemplate.audio_url;
+      usedTemplate = true;
+      templateId = existingTemplate.id;
+
+      // Update template usage stats
+      await supabase
+        .from("lesson_templates")
+        .update({
+          times_used: (existingTemplate.times_used || 1) + 1,
+          last_used_at: new Date().toISOString(),
+        })
+        .eq("id", existingTemplate.id);
+    } else {
+      // NO TEMPLATE FOUND - Generate new content
+      console.log(
+        `No template found for ${targetLanguage}/${userLevel}/${selectedTopic || "general"} - generating new...`,
+      );
+
+      // Select words for the lesson
+      const wordSelection = selectWordsForLesson(userWords || [], {
+        targetWordCount: wordCount,
+        newWordPercentage: newWordPct,
+        reviewWordPriority: prioritizeReview,
+      });
+
+      // Generate lesson text using OpenAI
+      const generatedContent = await generateLessonText(
+        openai,
+        wordSelection,
+        {
+          wordCount,
+          newWordPct,
+          prioritizeReview,
+          topic: selectedTopic,
+        },
+        userLevel,
+        targetLanguage,
+      );
+
+      lessonTitle = generatedContent.title;
+      lessonText = generatedContent.text;
+      translation = generatedContent.translation;
+
+      // Generate TTS audio
+      audioUrl = await generateTTSAudio(openai, lessonText, lessonId, user.id);
+
+      // SAVE AS NEW TEMPLATE for future users
+      const { data: newTemplate, error: templateError } = await supabase
+        .from("lesson_templates")
+        .insert({
+          language: targetLanguage,
+          level: userLevel,
+          topic: selectedTopic || "",
+          title: lessonTitle,
+          target_text: lessonText,
+          translation: translation,
+          audio_url: audioUrl,
+          word_count: wordCount,
+          generation_params: {
+            targetWordCount: wordCount,
+            newWordPercentage: newWordPct,
+          },
+          created_by: user.id,
+        })
+        .select()
+        .single();
+
+      if (templateError) {
+        // Non-fatal: template caching failed but lesson still works
+        console.warn("Failed to save lesson template:", templateError.message);
+      } else {
+        templateId = newTemplate?.id || null;
+        console.log(`Saved new template: ${templateId}`);
+      }
+    }
+
+    // ========================================
+    // ANALYZE WORDS FOR THIS SPECIFIC USER
+    // Word analysis is always per-user since it depends on their vocabulary
+    // ========================================
 
     // Analyze text to identify words
     const analyzedWords = analyzeTextWords(
@@ -207,18 +322,57 @@ export async function POST(request: NextRequest) {
     );
     const comprehension = calculateComprehension(analyzedWords);
 
-    // Generate lesson ID
-    const lessonId = `lesson-${Date.now()}`;
+    // Build vocabulary context for 10-phase lesson structure
+    const knownWords = analyzedWords.filter(
+      (w) => w.userKnowledge === "known" || w.userKnowledge === "mastered",
+    );
+    const reviewWords = analyzedWords.filter((w) => w.isDueForReview);
+    const newWords = analyzedWords.filter((w) => w.isNew);
 
-    // Generate TTS audio and upload to Supabase Storage
-    const audioUrl = await generateTTSAudio(
-      openai,
+    // Fetch previous review items for warmup (from user's recent lessons)
+    const { data: recentLessons } = await supabase
+      .from("lessons")
+      .select("words")
+      .eq("user_id", user.id)
+      .eq("completed", true)
+      .order("completed_at", { ascending: false })
+      .limit(3);
+
+    const previousReviewItems: string[] = [];
+    if (recentLessons && recentLessons.length > 0) {
+      recentLessons.forEach((lesson: any) => {
+        if (lesson.words && Array.isArray(lesson.words)) {
+          lesson.words
+            .filter((w: any) => w.isDueForReview || w.isNew)
+            .slice(0, 3)
+            .forEach((w: any) => {
+              if (w.lemma && !previousReviewItems.includes(w.lemma)) {
+                previousReviewItems.push(w.lemma);
+              }
+            });
+        }
+      });
+    }
+
+    const vocabularyContext: LessonVocabularyContext = {
+      targetLanguage,
+      cefrLevel: userLevel,
+      knownVocabList: knownWords.map((w) => w.lemma),
+      reviewVocabList: reviewWords.map((w) => w.lemma),
+      newVocabTarget: newWords.slice(0, 5).map((w) => w.lemma),
+      maxSentenceLength: userLevel === "A0" || userLevel === "A1" ? 8 : 15,
+      previousReviewItems: previousReviewItems.slice(0, 3),
+    };
+
+    // Build the full 10-phase lesson content structure
+    const lessonContent = buildLessonContent(
       lessonText,
-      lessonId,
-      user.id,
+      audioUrl,
+      vocabularyContext,
+      analyzedWords,
     );
 
-    // Create lesson object
+    // Create lesson object with 10-phase content
     const lesson: Lesson = {
       id: lessonId,
       userId: user.id,
@@ -235,10 +389,11 @@ export async function POST(request: NextRequest) {
       knownWordCount: analyzedWords.filter((w) => !w.isNew && !w.isDueForReview)
         .length,
       comprehensionPercentage: comprehension,
-      currentPhase: "audio-comprehension",
+      currentPhase: "spaced-retrieval-warmup",
       listenCount: 0,
       completed: false,
       createdAt: new Date().toISOString(),
+      content: lessonContent,
       generationParams: {
         targetWordCount: wordCount,
         newWordPercentage: newWordPct,
@@ -268,6 +423,7 @@ export async function POST(request: NextRequest) {
         current_phase: lesson.currentPhase,
         listen_count: lesson.listenCount,
         completed: lesson.completed,
+        content: lesson.content,
         generation_params: lesson.generationParams,
       })
       .select()
@@ -290,9 +446,9 @@ export async function POST(request: NextRequest) {
         warning:
           "Lesson generated but not saved to database. Progress will not persist.",
         wordStats: {
-          newWords: wordSelection.newWords,
-          reviewWords: wordSelection.reviewWords,
-          knownWords: wordSelection.knownWords,
+          newWordCount: lesson.newWordCount,
+          reviewWordCount: lesson.reviewWordCount,
+          knownWordCount: lesson.knownWordCount,
         },
       });
     }
@@ -302,9 +458,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       lesson,
       wordStats: {
-        newWords: wordSelection.newWords,
-        reviewWords: wordSelection.reviewWords,
-        knownWords: wordSelection.knownWords,
+        newWordCount: lesson.newWordCount,
+        reviewWordCount: lesson.reviewWordCount,
+        knownWordCount: lesson.knownWordCount,
       },
     });
   } catch (error) {

@@ -20,7 +20,10 @@ import {
   User as UserIcon,
   Loader2,
   ChevronRight,
+  RefreshCcw,
 } from "lucide-react";
+import { getLevelLabel } from "@/lib/placement/scoring";
+import { ProficiencyLevel } from "@/types";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -73,7 +76,7 @@ export default function SettingsPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/auth/login");
+        router.replace("/auth/login");
         return;
       }
 
@@ -109,7 +112,7 @@ export default function SettingsPage() {
     formData.append("full_name", fullName);
     formData.append("target_language", targetLanguage);
     formData.append("native_language", nativeLanguage);
-    formData.append("proficiency_level", proficiencyLevel);
+    // proficiency_level is not editable - users must retake placement test
 
     const result = await updateProfile(formData);
 
@@ -323,25 +326,29 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Proficiency Level */}
-              <div className="space-y-2">
+              {/* Proficiency Level - Read Only */}
+              <div className="space-y-3">
                 <label className="text-sm font-light">Proficiency Level</label>
-                <Select
-                  value={proficiencyLevel}
-                  onValueChange={setProficiencyLevel}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A1">A1 - Beginner</SelectItem>
-                    <SelectItem value="A2">A2 - Elementary</SelectItem>
-                    <SelectItem value="B1">B1 - Intermediate</SelectItem>
-                    <SelectItem value="B2">B2 - Upper Intermediate</SelectItem>
-                    <SelectItem value="C1">C1 - Advanced</SelectItem>
-                    <SelectItem value="C2">C2 - Proficient</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                  <div>
+                    <div className="text-2xl font-light mb-1">
+                      {proficiencyLevel}
+                    </div>
+                    <div className="text-sm text-muted-foreground font-light">
+                      {getLevelLabel(proficiencyLevel as ProficiencyLevel)}
+                    </div>
+                  </div>
+                  <Link href="/onboarding">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <RefreshCcw className="h-4 w-4" />
+                      Retake Test
+                    </Button>
+                  </Link>
+                </div>
+                <p className="text-xs text-muted-foreground font-light">
+                  Your proficiency level is determined by the placement test.
+                  Retake the test to update your level.
+                </p>
               </div>
 
               <Button onClick={handleSaveProfile} disabled={saving}>

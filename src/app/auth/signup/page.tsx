@@ -116,11 +116,11 @@ export default function SignUpPage() {
           <h1 className="text-5xl font-light leading-tight">
             Begin your journey to
             <br />
-            <span className="font-serif italic">French mastery</span>
+            <span className="font-serif italic">Language mastery</span>
           </h1>
           <p className="text-lg font-light text-background/80 max-w-md">
-            Join a community of discerning learners acquiring French through the
-            natural power of listening.
+            Join a community of discerning learners acquiring languages through
+            the natural power of listening.
           </p>
         </div>
 

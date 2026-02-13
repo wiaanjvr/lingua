@@ -186,6 +186,23 @@ function getLevelFromIndex(index: number): string {
 }
 
 /**
+ * Get short level label
+ */
+export function getLevelLabel(level: ProficiencyLevel): string {
+  const labels: Record<ProficiencyLevel, string> = {
+    A0: "Complete Beginner",
+    A1: "Beginner",
+    A2: "Elementary",
+    B1: "Intermediate",
+    B2: "Upper Intermediate",
+    C1: "Advanced",
+    C2: "Proficient",
+  };
+
+  return labels[level];
+}
+
+/**
  * Get human-readable level description
  */
 export function getLevelDescription(level: ProficiencyLevel): string {

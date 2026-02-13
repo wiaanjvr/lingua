@@ -74,8 +74,16 @@ export function calculateNextReview(
     intervalDays = FIRST_INTERVAL;
     newStatus = "learning";
   } else if (newRepetitions === 1) {
+    // First successful rating - set status based on how well they know it
     intervalDays = SECOND_INTERVAL;
-    newStatus = "learning";
+
+    // If user rates highly on first encounter, mark as known
+    if (rating >= 4) {
+      newStatus = "known"; // User already knows this word well
+      intervalDays = intervalDays * 2; // Longer interval for known words
+    } else {
+      newStatus = "learning"; // Still learning
+    }
   } else {
     // Use SM-2 formula: I(n) = I(n-1) * EF
     const previousInterval = currentWord.interval_days ?? SECOND_INTERVAL;

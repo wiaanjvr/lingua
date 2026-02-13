@@ -76,6 +76,24 @@ export function TextRevealPhase({
   const progress =
     (vocabularyRatings.length / Math.max(wordsToRate.length, 1)) * 100;
 
+  // Debug logging
+  useEffect(() => {
+    console.log("TextRevealPhase - Lesson words analysis:", {
+      totalWords: lesson.words.length,
+      wordsToRate: wordsToRate.length,
+      newWords: lesson.words.filter((w) => w.isNew).length,
+      reviewWords: lesson.words.filter((w) => w.isDueForReview).length,
+      alreadyRated: vocabularyRatings.length,
+      words: lesson.words.map((w) => ({
+        word: w.word,
+        lemma: w.lemma,
+        isNew: w.isNew,
+        isDueForReview: w.isDueForReview,
+        userKnowledge: w.userKnowledge,
+      })),
+    });
+  }, [lesson.words, wordsToRate.length, vocabularyRatings.length]);
+
   const togglePlayPause = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -197,6 +215,12 @@ export function TextRevealPhase({
             </span>
           </div>
           <Progress value={progress} className="h-2" />
+          {wordsToRate.length > 0 && vocabularyRatings.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              💡 Tip: Click on highlighted words in the text below to rate your
+              knowledge
+            </p>
+          )}
         </CardContent>
       </Card>
 

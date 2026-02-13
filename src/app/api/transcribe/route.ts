@@ -2,6 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
+interface TranscriptionFeedback {
+  isValid: boolean;
+  isSilence: boolean;
+  isRelevant: boolean;
+  englishWords: Array<{ english: string; translation: string }>;
+  message?: string;
+}
+
 /**
  * POST /api/transcribe - Transcribe audio using OpenAI Whisper
  */
@@ -28,6 +36,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const audioFile = formData.get("audio") as Blob | null;
     const language = (formData.get("language") as string) || "fr";
+    const questionContext = formData.get("questionContext") as string | null;
 
     if (!audioFile) {
       return NextResponse.json(
@@ -50,9 +59,20 @@ export async function POST(request: NextRequest) {
       response_format: "text",
     });
 
-    return NextResponse.json({
-      text: transcription.trim(),
+    const transcriptText = transcription.trim();
+
+    // Analyze the transcription for feedback
+    const feedback = await analyzeTranscription(
+      openai,
+      transcriptText,
       language,
+      questionContext,
+    );
+
+    return NextResponse.json({
+      text: transcriptText,
+      language,
+      feedback,
     });
   } catch (error) {
     console.error("Transcription error:", error);
@@ -60,5 +80,86 @@ export async function POST(request: NextRequest) {
       { error: "Failed to transcribe audio" },
       { status: 500 },
     );
+  }
+}
+
+/**
+ * Analyze transcription for silence, relevance, and English word usage
+ */
+async function analyzeTranscription(
+  openai: OpenAI,
+  transcript: string,
+  targetLanguage: string,
+  questionContext: string | null,
+): Promise<TranscriptionFeedback> {
+  // Check for silence or very short responses
+  if (!transcript || transcript.length < 5) {
+    return {
+      isValid: false,
+      isSilence: true,
+      isRelevant: false,
+      englishWords: [],
+      message:
+        "No speech detected. Please try recording again and speak clearly.",
+    };
+  }
+
+  // Use GPT to analyze the response
+  const languageName =
+    targetLanguage === "fr" ? "French" : "the target language";
+  const prompt = `You are analyzing a language learner's spoken response. The student is learning ${languageName}.
+
+Transcript: "${transcript}"
+${questionContext ? `Question they were asked: "${questionContext}"` : ""}
+
+Analyze this response and provide a JSON response with:
+1. "isRelevant": true if the response attempts to answer the question or describe audio content, false if it's completely nonsensical or unrelated gibberish
+2. "englishWords": array of up to 3 English words used in the response (if any). For each, provide {"english": "word", "translation": "${languageName} translation"}
+3. "message": A brief encouraging message if needed
+
+Rules:
+- If the response is complete gibberish or random sounds, mark isRelevant as false
+- Only detect clear English words, not ${languageName} words
+- Limit to maximum 3 English words
+- Be lenient - accept mixed language responses as relevant if they try to answer
+
+Respond ONLY with valid JSON.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content || "{}");
+
+    const feedback: TranscriptionFeedback = {
+      isValid: result.isRelevant !== false,
+      isSilence: false,
+      isRelevant: result.isRelevant !== false,
+      englishWords: (result.englishWords || []).slice(0, 3),
+      message: result.message,
+    };
+
+    // Generate appropriate message
+    if (!feedback.isRelevant) {
+      feedback.message =
+        "Your response doesn't seem to relate to the question. Please try again and describe what you heard in the audio.";
+    } else if (feedback.englishWords.length > 0) {
+      feedback.message = `Great effort! Here are some ${languageName} words to help you:`;
+    }
+
+    return feedback;
+  } catch (error) {
+    console.error("Analysis error:", error);
+    // If analysis fails, assume response is valid
+    return {
+      isValid: true,
+      isSilence: false,
+      isRelevant: true,
+      englishWords: [],
+    };
   }
 }

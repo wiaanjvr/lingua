@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 /**
- * POST /api/lesson/feedback - Generate conversational feedback using OpenAI
+ * POST /api/lesson/feedback - Generate guided teacher conversation feedback
+ *
+ * This simulates a real teacher-student dialogue where the teacher:
+ * - Listens carefully to what the student says
+ * - Helps with small mistakes (like using English words)
+ * - Asks follow-up "what if" questions to deepen understanding
+ * - Guides the conversation through 3 turns
  */
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +37,7 @@ export async function POST(request: NextRequest) {
       userResponse,
       conversationHistory,
       level,
+      turnNumber, // 1, 2, or 3
     } = await request.json();
 
     if (!targetText || !userResponse) {
@@ -47,38 +54,83 @@ export async function POST(request: NextRequest) {
       ? conversationHistory
           .map(
             (turn: { role: string; text: string }) =>
-              `${turn.role}: ${turn.text}`,
+              `${turn.role === "assistant" ? "Teacher" : "Student"}: ${turn.text}`,
           )
           .join("\n")
       : "";
 
-    const prompt = `You are a supportive French language tutor helping a ${level || "A1"} learner understand a listening exercise.
+    // Determine the current turn number (1-3)
+    const currentTurn =
+      turnNumber ||
+      (conversationHistory?.filter((t: { role: string }) => t.role === "user")
+        .length || 0) + 1;
 
-The student listened to this French text (without seeing it):
-"${targetText}"
+    // Turn-specific guidance for the teacher
+    const turnGuidance = {
+      1: `This is the student's FIRST response. Focus on:
+- Warmly acknowledging whatever they understood
+- If they used English words, gently provide the French: "I heard you say 'X' - in French we say 'Y'"
+- Ask ONE simple follow-up question about the content or situation`,
 
-Translation: "${translation || "Not provided"}"
+      2: `This is the student's SECOND response. Focus on:
+- Build on what they said in their first answer
+- If they used English words, teach the French equivalents with a short example
+- Ask a "what if" scenario question: "Et si..." (What if the person had... / What would happen if...)
+- Explore the context or situation more deeply`,
 
-${historyContext ? `Previous conversation:\n${historyContext}\n` : ""}
+      3: `This is the student's THIRD and FINAL response. Focus on:
+- Summarize what they've demonstrated understanding of
+- Give one final vocabulary tip if they used English words
+- Provide encouragement: "Excellent work! You understood [key points]"
+- End with: "Ready to see the full text?"
+- Do NOT ask another question - this is the wrap-up`,
+    };
 
-The student just said: "${userResponse}"
+    const prompt = `You are a warm, patient French teacher having a real conversation with a ${level || "A1"} student about a listening exercise they just completed.
 
-Provide a brief, encouraging response that:
-1. Acknowledges what they understood correctly (if anything)
-2. Gently clarifies any misunderstandings
-3. Offers a hint about vocabulary or context if helpful
-4. Asks a follow-up question to deepen understanding
-5. Uses simple language appropriate for their level
+=== THE AUDIO TEXT (student hasn't seen this yet) ===
+French: "${targetText}"
+English meaning: "${translation || "Not provided"}"
 
-Keep your response concise (2-4 sentences). Be warm and encouraging.
+=== CONVERSATION SO FAR ===
+${historyContext || "(This is the beginning of the conversation)"}
 
-Return a JSON object with:
-- response: your feedback text
-- questionType: "comprehension" | "vocabulary" | "encouragement"
-- vocabularyHint: (optional) { word: string, translation: string, context: string }
-- comprehensionScore: 0-100 estimate of how much they understood
+=== STUDENT'S LATEST RESPONSE ===
+"${userResponse}"
 
-IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
+=== YOUR ROLE AS TEACHER (Turn ${currentTurn} of 3) ===
+${turnGuidance[currentTurn as 1 | 2 | 3] || turnGuidance[3]}
+
+=== IMPORTANT BEHAVIORS ===
+1. ENGLISH WORD DETECTION: If the student uses ANY English words (because they don't know the French), you MUST:
+   - Identify each English word
+   - Provide the French translation
+   - Give a brief, natural example if helpful
+   Example: "I noticed you said 'morning' - en français, on dit 'le matin'. Like: 'Je me lève le matin.'"
+
+2. SCENARIO QUESTIONS (Turn 2 especially): Use "Et si..." to deepen understanding:
+   - "Et si la personne était en retard?" (What if the person was late?)
+   - "Qu'est-ce qui se passerait si...?" (What would happen if...?)
+   
+3. GENTLE CORRECTIONS: If they misunderstood something:
+   - Don't say "wrong" - instead say "Ah, actually..." or "That's close! The text actually said..."
+
+4. LENGTH: Keep responses to 2-3 sentences maximum. Students need concise feedback.
+
+5. ENCOURAGEMENT: Be genuinely warm and supportive. Learning a language is hard!
+
+Return a JSON object:
+{
+  "response": "Your teacher response (2-3 sentences max)",
+  "englishWordsDetected": [
+    { "english": "word", "french": "mot", "example": "Un mot français" }
+  ],
+  "questionType": "comprehension" | "scenario" | "vocabulary" | "wrap-up",
+  "vocabularyHint": { "word": "key word", "translation": "translation", "context": "from the text" } (optional),
+  "comprehensionScore": 0-100
+}
+
+Return ONLY valid JSON, no markdown.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -86,11 +138,11 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
         {
           role: "system",
           content:
-            "You are a warm, encouraging French language tutor. Return only valid JSON without markdown code blocks.",
+            "You are a warm, encouraging French teacher. You listen carefully, help with vocabulary gaps, and guide students through understanding. Return only valid JSON without markdown code blocks.",
         },
         { role: "user", content: prompt },
       ],
-      max_tokens: 500,
+      max_tokens: 600,
       temperature: 0.7,
     });
 
@@ -102,13 +154,23 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
       feedback = JSON.parse(jsonContent);
     } catch (parseError) {
       console.error("Failed to parse feedback:", content);
-      // Fallback response
+      // Fallback response based on turn
+      const fallbacks = {
+        1: "Thank you for sharing! I'd love to hear more. What else caught your attention in the audio?",
+        2: "Interesting! Et si on imaginait une situation différente - what would change?",
+        3: "Excellent work on this conversation! You've shown good understanding. Ready to see the full text?",
+      };
       feedback = {
-        response:
-          "Thank you for your response! Keep practicing - you're doing great. What else did you notice about the audio?",
-        questionType: "encouragement",
+        response: fallbacks[currentTurn as 1 | 2 | 3] || fallbacks[3],
+        questionType: currentTurn === 3 ? "wrap-up" : "comprehension",
+        englishWordsDetected: [],
         comprehensionScore: 50,
       };
+    }
+
+    // Ensure englishWordsDetected array exists
+    if (!feedback.englishWordsDetected) {
+      feedback.englishWordsDetected = [];
     }
 
     return NextResponse.json(feedback);

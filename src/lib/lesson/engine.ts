@@ -12,6 +12,22 @@ import {
   Exercise,
   ExerciseType,
   VocabularyHint,
+  LessonContent,
+  LessonVocabularyContext,
+  SpacedRetrievalWarmup,
+  RetrievalPrompt,
+  PredictionStage,
+  AudioText,
+  FirstRecallPrompt,
+  TranscriptWithHighlights,
+  HighlightedWord,
+  GuidedNoticing,
+  GuidedNoticingItem,
+  MicroDrills,
+  MicroDrill,
+  ShadowingStage,
+  SecondRecallPrompt,
+  ProgressReflection,
 } from "@/types/lesson";
 import { UserWord, ProficiencyLevel } from "@/types";
 import { lemmatize, tokenize, handleContractions } from "@/lib/srs/word-utils";
@@ -450,6 +466,433 @@ function extractWordContext(text: string, word: string): string {
 function generateMemoryHint(word: string): string {
   // This would ideally use AI or a database of memory techniques
   return `Focus on the sound and how it's used in context.`;
+}
+
+// ===== NEW 10-PHASE LESSON CONTENT GENERATION =====
+
+/**
+ * Generate the AI prompt for creating a structured lesson in the new 10-phase format.
+ * This prompt instructs the LLM to return structured JSON.
+ */
+export function generateStructuredLessonPrompt(
+  context: LessonVocabularyContext,
+): string {
+  const {
+    targetLanguage,
+    cefrLevel,
+    knownVocabList,
+    reviewVocabList,
+    newVocabTarget,
+    maxSentenceLength,
+    previousReviewItems,
+  } = context;
+
+  return `You are designing a structured language learning lesson focused on comprehensible input, active recall, spaced repetition, and measurable improvement.
+
+CONTEXT:
+- TARGET_LANGUAGE: ${targetLanguage}
+- CEFR_LEVEL: ${cefrLevel}
+- KNOWN_VOCAB_LIST: ${knownVocabList.slice(0, 100).join(", ")}${knownVocabList.length > 100 ? ` (${knownVocabList.length} total)` : ""}
+- REVIEW_VOCAB_LIST: ${reviewVocabList.join(", ")}
+- NEW_VOCAB_TARGET: ${newVocabTarget.join(", ")}
+- MAX_SENTENCE_LENGTH: ${maxSentenceLength} words
+- PREVIOUS_REVIEW_ITEMS: ${previousReviewItems.join(", ")}
+
+PEDAGOGICAL GOALS:
+- Ensure 95% of lesson text uses KNOWN_VOCAB_LIST or REVIEW_VOCAB_LIST
+- Use 3-5 words from NEW_VOCAB_TARGET naturally in context
+- Reuse REVIEW_VOCAB_LIST strategically within the story
+- Keep syntax appropriate for ${cefrLevel}
+- Maintain emotional engagement and narrative coherence
+
+Return a JSON object with the following structure:
+
+{
+  "spacedRetrievalWarmup": {
+    "prompts": [
+      // 3 ultra-short prompts using PREVIOUS_REVIEW_ITEMS
+      // At least one comprehension recall, at least one production cue
+      // No explanations
+      { "id": "warmup-1", "type": "comprehension" | "production", "prompt": "...", "targetWord": "...", "expectedResponse": "..." }
+    ]
+  },
+  "predictionStage": {
+    "keywords": ["word1", "word2", "word3"], // 3 keywords, at least 1 new word
+    "predictionPrompt": "What do you think the story will be about?"
+  },
+  "audioText": {
+    "storyText": "...", // Full story, 1-5 sentences, 95% known/review vocab, natural use of new vocab, clear narrative arc
+    "sentenceCount": 3,
+    "wordCount": 25,
+    "knownWordPercentage": 95
+  },
+  "firstRecallPrompt": {
+    "instruction": "Without looking at the text, describe what you heard in your own words.",
+    "encouragement": "It's okay if you only caught part of it. Just share what you remember."
+  },
+  "transcriptWithHighlights": {
+    "storyText": "...", // Same story text
+    "highlightedWords": [
+      // NEW_VOCAB_TARGET marked clearly, REVIEW_VOCAB_LIST marked subtly
+      { "word": "...", "lemma": "...", "startIndex": 0, "endIndex": 5, "highlightType": "new" | "review", "translation": "..." }
+    ]
+  },
+  "guidedNoticing": {
+    "items": [
+      // For each new word:
+      {
+        "word": "...",
+        "contextSentence": "...", // Sentence from story where word appears
+        "inferencePrompt": "What do you think '...' means based on the sentence?",
+        "meaning": "...", // Concise meaning
+        "microExample": "..." // One additional example sentence
+      }
+    ]
+  },
+  "microDrills": {
+    "drills": [
+      // 1 sentence reconstruction exercise
+      { "type": "reconstruction", "originalSentence": "...", "scrambledWords": ["..."], "hint": "..." },
+      // 1 short paraphrase prompt
+      { "type": "paraphrase", "originalSentence": "...", "instruction": "Say this differently:", "sampleAnswer": "..." },
+      // 1 constrained output task requiring at least 2 NEW_VOCAB_TARGET words
+      { "type": "constrained-output", "instruction": "...", "requiredWords": ["...", "..."], "context": "...", "sampleAnswer": "..." }
+    ]
+  },
+  "shadowingStage": {
+    "instruction": "Listen to the audio and repeat simultaneously, focusing on rhythm and pronunciation.",
+    "focusPoints": ["...", "..."] // Specific pronunciation points
+  },
+  "secondRecallPrompt": {
+    "instruction": "Now retell the story again. This time, try to use these words:",
+    "requiredNewWords": ["...", "..."], // At least 2 new vocab words
+    "requiredReviewWords": ["..."] // At least 1 review word
+  },
+  "progressReflection": {
+    "questions": [
+      "What did you understand better the second time?",
+      "Which word felt easier?",
+      "What was still difficult?"
+    ]
+  }
+}
+
+PEDAGOGICAL RULES:
+- Difficulty should feel slightly uncomfortable but achievable
+- Never introduce more than 5 new words
+- Avoid rare idioms unless learner level justifies it
+- Avoid overly abstract topics at lower CEFR levels
+- Reinforce review vocabulary naturally
+- Preserve narrative coherence
+
+Return ONLY the JSON object, no other text.`;
+}
+
+/**
+ * Build lesson content from existing story text and vocabulary context.
+ * Used when we have the story and need to populate the full lesson structure.
+ */
+export function buildLessonContent(
+  storyText: string,
+  audioUrl: string,
+  context: LessonVocabularyContext,
+  words: LessonWord[],
+): LessonContent {
+  const { newVocabTarget, reviewVocabList, previousReviewItems, cefrLevel } =
+    context;
+
+  // Build spaced retrieval warmup
+  const spacedRetrievalWarmup = buildSpacedRetrievalWarmup(previousReviewItems);
+
+  // Build prediction stage
+  const predictionStage = buildPredictionStage(newVocabTarget, reviewVocabList);
+
+  // Build audio text
+  const audioText = buildAudioText(storyText, audioUrl, words);
+
+  // Build first recall prompt
+  const firstRecallPrompt = buildFirstRecallPrompt(cefrLevel);
+
+  // Build transcript with highlights
+  const transcriptWithHighlights = buildTranscriptWithHighlights(
+    storyText,
+    words,
+    newVocabTarget,
+    reviewVocabList,
+  );
+
+  // Build guided noticing
+  const guidedNoticing = buildGuidedNoticing(storyText, newVocabTarget, words);
+
+  // Build micro drills
+  const microDrills = buildMicroDrills(
+    storyText,
+    newVocabTarget,
+    reviewVocabList,
+  );
+
+  // Build shadowing stage
+  const shadowingStage = buildShadowingStage(audioUrl, newVocabTarget);
+
+  // Build second recall prompt
+  const secondRecallPrompt = buildSecondRecallPrompt(
+    newVocabTarget,
+    reviewVocabList,
+  );
+
+  // Build progress reflection
+  const progressReflection = buildProgressReflection();
+
+  return {
+    spacedRetrievalWarmup,
+    predictionStage,
+    audioText,
+    firstRecallPrompt,
+    transcriptWithHighlights,
+    guidedNoticing,
+    microDrills,
+    shadowingStage,
+    secondRecallPrompt,
+    progressReflection,
+  };
+}
+
+function buildSpacedRetrievalWarmup(
+  previousReviewItems: string[],
+): SpacedRetrievalWarmup {
+  const prompts: RetrievalPrompt[] = [];
+  const items = previousReviewItems.slice(0, 3);
+
+  if (items.length >= 1) {
+    prompts.push({
+      id: "warmup-1",
+      type: "comprehension",
+      prompt: `What does "${items[0]}" mean?`,
+      targetWord: items[0],
+    });
+  }
+
+  if (items.length >= 2) {
+    prompts.push({
+      id: "warmup-2",
+      type: "production",
+      prompt: `How do you say "${items[1]}" in a sentence?`,
+      targetWord: items[1],
+      expectedResponse: `Je ${items[1]} ...`,
+    });
+  }
+
+  if (items.length >= 3) {
+    prompts.push({
+      id: "warmup-3",
+      type: "comprehension",
+      prompt: `Use "${items[2]}" - can you remember an example?`,
+      targetWord: items[2],
+    });
+  }
+
+  return { prompts };
+}
+
+function buildPredictionStage(
+  newVocabTarget: string[],
+  reviewVocabList: string[],
+): PredictionStage {
+  const keywords = [
+    newVocabTarget[0] || "aujourd'hui",
+    reviewVocabList[0] || "je",
+    reviewVocabList[1] || "suis",
+  ].slice(0, 3);
+
+  return {
+    keywords,
+    predictionPrompt:
+      "Based on these keywords, what do you think the story will be about?",
+  };
+}
+
+function buildAudioText(
+  storyText: string,
+  audioUrl: string,
+  words: LessonWord[],
+): AudioText {
+  const sentences = storyText
+    .split(/[.!?]+/)
+    .filter((s) => s.trim().length > 0);
+  const knownCount = words.filter((w) => !w.isNew).length;
+  const knownPercentage =
+    words.length > 0 ? Math.round((knownCount / words.length) * 100) : 0;
+
+  return {
+    storyText,
+    audioUrl,
+    sentenceCount: sentences.length,
+    wordCount: words.length,
+    knownWordPercentage: knownPercentage,
+  };
+}
+
+function buildFirstRecallPrompt(level: ProficiencyLevel): FirstRecallPrompt {
+  const encouragements: Record<string, string> = {
+    A0: "Just say one or two things you remember. Any words at all!",
+    A1: "It's okay to use simple words. What stuck with you?",
+    A2: "Share what you understood. Partial understanding is progress!",
+    B1: "Describe the main idea. Details can come later.",
+    B2: "Summarize the key points you heard.",
+    C1: "Give a concise overview of the content.",
+    C2: "Capture the essence and any notable details.",
+  };
+
+  return {
+    instruction:
+      "Without looking at the text, describe what you heard in your own words.",
+    encouragement:
+      encouragements[level] || "It's okay if you only caught part of it.",
+  };
+}
+
+function buildTranscriptWithHighlights(
+  storyText: string,
+  words: LessonWord[],
+  newVocabTarget: string[],
+  reviewVocabList: string[],
+): TranscriptWithHighlights {
+  const highlightedWords: HighlightedWord[] = [];
+  const newVocabSet = new Set(newVocabTarget.map((w) => w.toLowerCase()));
+  const reviewVocabSet = new Set(reviewVocabList.map((w) => w.toLowerCase()));
+
+  let searchIndex = 0;
+  for (const word of words) {
+    const wordLower = word.lemma.toLowerCase();
+    const isNew = newVocabSet.has(wordLower);
+    const isReview = reviewVocabSet.has(wordLower);
+
+    if (isNew || isReview) {
+      const startIndex = storyText
+        .toLowerCase()
+        .indexOf(word.word.toLowerCase(), searchIndex);
+      if (startIndex !== -1) {
+        highlightedWords.push({
+          word: word.word,
+          lemma: word.lemma,
+          startIndex,
+          endIndex: startIndex + word.word.length,
+          highlightType: isNew ? "new" : "review",
+          translation: word.translation,
+        });
+        searchIndex = startIndex + word.word.length;
+      }
+    }
+  }
+
+  return { storyText, highlightedWords };
+}
+
+function buildGuidedNoticing(
+  storyText: string,
+  newVocabTarget: string[],
+  words: LessonWord[],
+): GuidedNoticing {
+  const items: GuidedNoticingItem[] = [];
+  const sentences = storyText
+    .split(/[.!?]+/)
+    .filter((s) => s.trim().length > 0);
+
+  for (const newWord of newVocabTarget) {
+    const wordInfo = words.find(
+      (w) => w.lemma.toLowerCase() === newWord.toLowerCase(),
+    );
+    const contextSentence =
+      sentences.find((s) => s.toLowerCase().includes(newWord.toLowerCase())) ||
+      sentences[0] ||
+      storyText;
+
+    items.push({
+      word: newWord,
+      contextSentence: contextSentence.trim(),
+      inferencePrompt: `What do you think "${newWord}" means based on this sentence?`,
+      meaning: wordInfo?.translation || "meaning to be provided",
+      microExample: `Example: ${newWord} peut être utilisé ici.`,
+    });
+  }
+
+  return { items };
+}
+
+function buildMicroDrills(
+  storyText: string,
+  newVocabTarget: string[],
+  reviewVocabList: string[],
+): MicroDrills {
+  const sentences = storyText
+    .split(/[.!?]+/)
+    .filter((s) => s.trim().length > 0);
+  const firstSentence = sentences[0]?.trim() || storyText;
+
+  const drills: MicroDrill[] = [
+    // Sentence reconstruction
+    {
+      type: "reconstruction",
+      originalSentence: firstSentence,
+      scrambledWords: shuffleArray(firstSentence.split(/\s+/)),
+      hint: "Remember the story order.",
+    },
+    // Paraphrase
+    {
+      type: "paraphrase",
+      originalSentence: firstSentence,
+      instruction: "Say this sentence in a different way:",
+      sampleAnswer: "Alternative phrasing here.",
+    },
+    // Constrained output
+    {
+      type: "constrained-output",
+      instruction: "Create a sentence using these words:",
+      requiredWords: newVocabTarget.slice(0, 2),
+      context: "Use the words naturally in a sentence about the story.",
+      sampleAnswer: "Sample sentence using the required words.",
+    },
+  ];
+
+  return { drills };
+}
+
+function buildShadowingStage(
+  audioUrl: string,
+  newVocabTarget: string[],
+): ShadowingStage {
+  return {
+    audioUrl,
+    instruction:
+      "Listen to the audio and repeat simultaneously. Focus on matching the rhythm and pronunciation.",
+    focusPoints: [
+      `Pay attention to how "${newVocabTarget[0] || "new words"}" is pronounced`,
+      "Match the speaker's intonation",
+      "Don't worry about perfection - flow is more important",
+    ],
+  };
+}
+
+function buildSecondRecallPrompt(
+  newVocabTarget: string[],
+  reviewVocabList: string[],
+): SecondRecallPrompt {
+  return {
+    instruction:
+      "Now retell the story again. This time, try to include these words:",
+    requiredNewWords: newVocabTarget.slice(0, 2),
+    requiredReviewWords: reviewVocabList.slice(0, 1),
+  };
+}
+
+function buildProgressReflection(): ProgressReflection {
+  return {
+    questions: [
+      "What did you understand better the second time?",
+      "Which word felt easier or more natural?",
+      "What was still challenging?",
+    ],
+  };
 }
 
 // ===== UTILITY FUNCTIONS =====

@@ -11,17 +11,31 @@ import {
   VocabularyRating,
   Exercise,
   ExerciseAttempt,
+  LESSON_PHASE_ORDER,
 } from "@/types/lesson";
 import { WordRating } from "@/types";
 
 // Phase Components - Import from index
 import {
+  // New 10-phase components
+  SpacedRetrievalWarmupPhase,
+  PredictionStagePhase,
+  AudioTextPhase,
+  FirstRecallPhase,
+  TranscriptRevealPhase,
+  GuidedNoticingPhase,
+  MicroDrillsPhase,
+  ShadowingPhase,
+  SecondRecallPhase,
+  ProgressReflectionPhase,
+  // Legacy components
   AudioComprehensionPhase,
   VerbalCheckPhase,
   ConversationFeedbackPhase,
   TextRevealPhase,
   InteractiveExercisesPhase,
   FinalAssessmentPhase,
+  // Shared components
   LessonComplete,
   LessonHeader,
   LessonLoading,
@@ -30,15 +44,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 
-// Phase order
-const PHASE_ORDER: LessonPhase[] = [
-  "audio-comprehension",
-  "verbal-check",
-  "conversation-feedback",
-  "text-reveal",
-  "interactive-exercises",
-  "final-assessment",
+// Legacy phase order (for old lessons without content structure)
+const LEGACY_PHASE_ORDER: LessonPhase[] = [
+  "audio-comprehension" as LessonPhase,
+  "verbal-check" as LessonPhase,
+  "conversation-feedback" as LessonPhase,
+  "text-reveal" as LessonPhase,
+  "interactive-exercises" as LessonPhase,
+  "final-assessment" as LessonPhase,
 ];
+
+// Check if lesson uses new 10-phase structure
+const isNewLessonStructure = (lesson: Lesson | null): boolean => {
+  return !!lesson?.content;
+};
 
 export default function LessonPage() {
   const router = useRouter();
@@ -49,11 +68,11 @@ export default function LessonPage() {
   const [generating, setGenerating] = useState(false);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [currentPhase, setCurrentPhase] = useState<LessonPhase>(
-    "audio-comprehension",
+    "spaced-retrieval-warmup",
   );
   const [completed, setCompleted] = useState(false);
 
-  // Phase-specific state
+  // Phase-specific state (legacy)
   const [listenCount, setListenCount] = useState(0);
   const [initialResponse, setInitialResponse] =
     useState<ComprehensionResponse | null>(null);
@@ -66,9 +85,47 @@ export default function LessonPage() {
   const [finalResponse, setFinalResponse] =
     useState<ComprehensionResponse | null>(null);
 
+  // New 10-phase state
+  const [warmupResponses, setWarmupResponses] = useState<
+    Record<string, string>
+  >({});
+  const [prediction, setPrediction] = useState("");
+  const [firstRecallResponse, setFirstRecallResponse] = useState<{
+    text?: string;
+    audioUrl?: string;
+  }>({});
+  const [noticingInferences, setNoticingInferences] = useState<
+    Record<string, string>
+  >({});
+  const [drillResults, setDrillResults] = useState<
+    Record<number, { response: string; correct: boolean }>
+  >({});
+  const [shadowingCount, setShadowingCount] = useState(0);
+  const [secondRecallResponse, setSecondRecallResponse] = useState<{
+    text?: string;
+    audioUrl?: string;
+  }>({});
+  const [reflectionResponses, setReflectionResponses] = useState<
+    Record<string, string>
+  >({});
+
   // Progress tracking
   const [overallProgress, setOverallProgress] = useState(0);
   const [lessonStartTime, setLessonStartTime] = useState<number | null>(null);
+
+  // Get the appropriate phase order based on lesson structure
+  const getPhaseOrder = useCallback(() => {
+    return isNewLessonStructure(lesson)
+      ? LESSON_PHASE_ORDER
+      : LEGACY_PHASE_ORDER;
+  }, [lesson]);
+
+  // Get initial phase for lesson type
+  const getInitialPhase = useCallback(() => {
+    return isNewLessonStructure(lesson)
+      ? "spaced-retrieval-warmup"
+      : ("audio-comprehension" as LessonPhase);
+  }, [lesson]);
 
   // Load user and check for existing lesson
   useEffect(() => {
@@ -83,7 +140,7 @@ export default function LessonPage() {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        router.push("/auth/login");
+        router.replace("/auth/login");
         return;
       }
 
@@ -99,7 +156,11 @@ export default function LessonPage() {
       if (incompleteLessons && incompleteLessons.length > 0) {
         const existingLesson = incompleteLessons[0] as Lesson;
         setLesson(existingLesson);
-        setCurrentPhase(existingLesson.currentPhase || "audio-comprehension");
+        // Use appropriate initial phase based on lesson structure
+        const defaultPhase = existingLesson.content
+          ? "spaced-retrieval-warmup"
+          : ("audio-comprehension" as LessonPhase);
+        setCurrentPhase(existingLesson.currentPhase || defaultPhase);
         setListenCount(existingLesson.listenCount || 0);
         setLessonStartTime(Date.now()); // Track session time from resume
       }
@@ -128,10 +189,36 @@ export default function LessonPage() {
 
       const data = await response.json();
       setLesson(data.lesson);
-      setCurrentPhase("audio-comprehension");
+
+      // Use appropriate initial phase based on lesson structure
+      const initialPhase = data.lesson.content
+        ? "spaced-retrieval-warmup"
+        : ("audio-comprehension" as LessonPhase);
+      setCurrentPhase(initialPhase);
       setListenCount(0);
       setOverallProgress(0);
       setLessonStartTime(Date.now());
+
+      // Reset new phase state
+      setWarmupResponses({});
+      setPrediction("");
+      setFirstRecallResponse({});
+      setNoticingInferences({});
+      setDrillResults({});
+      setShadowingCount(0);
+      setSecondRecallResponse({});
+      setReflectionResponses({});
+
+      // Debug: Log lesson data
+      console.log("Lesson generated:", {
+        id: data.lesson.id,
+        totalWords: data.lesson.words?.length || 0,
+        newWords: data.lesson.words?.filter((w: any) => w.isNew).length || 0,
+        reviewWords:
+          data.lesson.words?.filter((w: any) => w.isDueForReview).length || 0,
+        hasWords: !!data.lesson.words,
+        wordSample: data.lesson.words?.slice(0, 5),
+      });
     } catch (error) {
       console.error("Error generating lesson:", error);
       alert("Failed to generate lesson. Please try again.");
@@ -143,12 +230,13 @@ export default function LessonPage() {
   // Phase navigation
   const handlePhaseComplete = useCallback(
     (phase: LessonPhase) => {
-      const currentIndex = PHASE_ORDER.indexOf(phase);
-      const progress = ((currentIndex + 1) / PHASE_ORDER.length) * 100;
+      const phaseOrder = getPhaseOrder();
+      const currentIndex = phaseOrder.indexOf(phase);
+      const progress = ((currentIndex + 1) / phaseOrder.length) * 100;
       setOverallProgress(progress);
 
-      if (currentIndex < PHASE_ORDER.length - 1) {
-        const nextPhase = PHASE_ORDER[currentIndex + 1];
+      if (currentIndex < phaseOrder.length - 1) {
+        const nextPhase = phaseOrder[currentIndex + 1];
         setCurrentPhase(nextPhase);
 
         // Save progress to database
@@ -163,7 +251,7 @@ export default function LessonPage() {
         }
       }
     },
-    [lesson],
+    [lesson, getPhaseOrder],
   );
 
   const updateLessonProgress = async (phase: LessonPhase) => {
@@ -291,7 +379,7 @@ export default function LessonPage() {
   }, []);
 
   const handleAudioPhaseComplete = useCallback(() => {
-    handlePhaseComplete("audio-comprehension");
+    handlePhaseComplete("audio-comprehension" as LessonPhase);
   }, [handlePhaseComplete]);
 
   // Phase 2: Verbal check handlers
@@ -329,7 +417,8 @@ export default function LessonPage() {
 
       // Update SRS
       try {
-        await fetch("/api/words/rate", {
+        console.log("Saving word rating:", rating);
+        const response = await fetch("/api/words/rate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -340,8 +429,23 @@ export default function LessonPage() {
             context_sentence: rating.context,
           }),
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error response from /api/words/rate:", errorData);
+          throw new Error(
+            `Failed to save word rating: ${errorData.error || response.statusText}`,
+          );
+        }
+
+        const result = await response.json();
+        console.log("Word rating saved successfully:", result);
       } catch (error) {
         console.error("Error rating word:", error);
+        // Show user-friendly error
+        alert(
+          `Failed to save word "${rating.word}". Your progress may not be saved.`,
+        );
       }
     },
     [lesson],
@@ -386,13 +490,22 @@ export default function LessonPage() {
   const handleStartNewLesson = () => {
     setLesson(null);
     setCompleted(false);
-    setCurrentPhase("audio-comprehension");
+    setCurrentPhase("spaced-retrieval-warmup");
     setListenCount(0);
     setInitialResponse(null);
     setVocabularyRatings([]);
     setExerciseAttempts([]);
     setFinalResponse(null);
     setOverallProgress(0);
+    // Reset new phase state
+    setWarmupResponses({});
+    setPrediction("");
+    setFirstRecallResponse({});
+    setNoticingInferences({});
+    setDrillResults({});
+    setShadowingCount(0);
+    setSecondRecallResponse({});
+    setReflectionResponses({});
     handleGenerateLesson();
   };
 
@@ -466,61 +579,187 @@ export default function LessonPage() {
       />
 
       <main className="container max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        {/* Phase 1: Audio-Only Comprehension */}
-        {currentPhase === "audio-comprehension" && (
-          <AudioComprehensionPhase
-            lesson={lesson!}
+        {/* ===== NEW 10-PHASE LESSON FLOW ===== */}
+
+        {/* Phase 1: Spaced Retrieval Warmup */}
+        {currentPhase === "spaced-retrieval-warmup" && lesson?.content && (
+          <SpacedRetrievalWarmupPhase
+            warmup={lesson.content.spacedRetrievalWarmup}
+            onComplete={(responses) => {
+              setWarmupResponses(responses);
+              handlePhaseComplete("spaced-retrieval-warmup");
+            }}
+          />
+        )}
+
+        {/* Phase 2: Prediction Stage */}
+        {currentPhase === "prediction-stage" && lesson?.content && (
+          <PredictionStagePhase
+            stage={lesson.content.predictionStage}
+            onComplete={(pred) => {
+              setPrediction(pred);
+              handlePhaseComplete("prediction-stage");
+            }}
+          />
+        )}
+
+        {/* Phase 3: Audio Text (Listen to Story) */}
+        {currentPhase === "audio-text" && lesson?.content && (
+          <AudioTextPhase
+            audioText={lesson.content.audioText}
             listenCount={listenCount}
-            onListenComplete={handleListenComplete}
-            onPhaseComplete={handleAudioPhaseComplete}
+            onListenComplete={() => setListenCount((prev) => prev + 1)}
+            onPhaseComplete={() => handlePhaseComplete("audio-text")}
           />
         )}
 
-        {/* Phase 2: Verbal Comprehension Check */}
-        {currentPhase === "verbal-check" && (
-          <VerbalCheckPhase
-            lesson={lesson!}
-            onResponse={handleVerbalResponse}
-            onPhaseComplete={() => handlePhaseComplete("verbal-check")}
+        {/* Phase 4: First Recall Prompt */}
+        {currentPhase === "first-recall" && lesson?.content && (
+          <FirstRecallPhase
+            prompt={lesson.content.firstRecallPrompt}
+            onComplete={(response) => {
+              setFirstRecallResponse(response);
+              handlePhaseComplete("first-recall");
+            }}
           />
         )}
 
-        {/* Phase 3: Conversational Feedback Loop */}
-        {currentPhase === "conversation-feedback" && (
-          <ConversationFeedbackPhase
-            lesson={lesson!}
-            initialEvaluation={initialResponse?.evaluation}
-            onPhaseComplete={() => handlePhaseComplete("conversation-feedback")}
+        {/* Phase 5: Transcript with Highlights */}
+        {currentPhase === "transcript-reveal" && lesson?.content && (
+          <TranscriptRevealPhase
+            transcript={lesson.content.transcriptWithHighlights}
+            onComplete={() => handlePhaseComplete("transcript-reveal")}
           />
         )}
 
-        {/* Phase 4: Text Reveal + Vocabulary Marking */}
-        {currentPhase === "text-reveal" && (
-          <TextRevealPhase
-            lesson={lesson!}
-            onWordRating={handleWordRating}
-            vocabularyRatings={vocabularyRatings}
-            onPhaseComplete={() => handlePhaseComplete("text-reveal")}
+        {/* Phase 6: Guided Noticing */}
+        {currentPhase === "guided-noticing" && lesson?.content && (
+          <GuidedNoticingPhase
+            noticing={lesson.content.guidedNoticing}
+            onComplete={(inferences) => {
+              setNoticingInferences(inferences);
+              handlePhaseComplete("guided-noticing");
+            }}
           />
         )}
 
-        {/* Phase 5: Interactive Exercises */}
-        {currentPhase === "interactive-exercises" && (
-          <InteractiveExercisesPhase
-            lesson={lesson!}
-            onExerciseAttempt={handleExerciseAttempt}
-            onPhaseComplete={() => handlePhaseComplete("interactive-exercises")}
+        {/* Phase 7: Micro Drills */}
+        {currentPhase === "micro-drills" && lesson?.content && (
+          <MicroDrillsPhase
+            drills={lesson.content.microDrills}
+            onComplete={(results) => {
+              setDrillResults(results);
+              handlePhaseComplete("micro-drills");
+            }}
           />
         )}
 
-        {/* Phase 6: Final Verbal Assessment */}
-        {currentPhase === "final-assessment" && (
-          <FinalAssessmentPhase
-            lesson={lesson!}
-            onResponse={handleFinalResponse}
-            onPhaseComplete={() => handlePhaseComplete("final-assessment")}
+        {/* Phase 8: Shadowing Stage */}
+        {currentPhase === "shadowing" && lesson?.content && (
+          <ShadowingPhase
+            stage={lesson.content.shadowingStage}
+            onComplete={(count) => {
+              setShadowingCount(count);
+              handlePhaseComplete("shadowing");
+            }}
           />
         )}
+
+        {/* Phase 9: Second Recall Prompt */}
+        {currentPhase === "second-recall" && lesson?.content && (
+          <SecondRecallPhase
+            prompt={lesson.content.secondRecallPrompt}
+            onComplete={(response) => {
+              setSecondRecallResponse(response);
+              handlePhaseComplete("second-recall");
+            }}
+          />
+        )}
+
+        {/* Phase 10: Progress Reflection */}
+        {currentPhase === "progress-reflection" && lesson?.content && (
+          <ProgressReflectionPhase
+            reflection={lesson.content.progressReflection}
+            onComplete={(responses) => {
+              setReflectionResponses(responses);
+              handlePhaseComplete("progress-reflection");
+            }}
+          />
+        )}
+
+        {/* ===== LEGACY 6-PHASE LESSON FLOW ===== */}
+
+        {/* Legacy Phase 1: Audio-Only Comprehension */}
+        {currentPhase === ("audio-comprehension" as LessonPhase) &&
+          !lesson?.content && (
+            <AudioComprehensionPhase
+              lesson={lesson!}
+              listenCount={listenCount}
+              onListenComplete={handleListenComplete}
+              onPhaseComplete={handleAudioPhaseComplete}
+            />
+          )}
+
+        {/* Legacy Phase 2: Verbal Comprehension Check */}
+        {currentPhase === ("verbal-check" as LessonPhase) &&
+          !lesson?.content && (
+            <VerbalCheckPhase
+              lesson={lesson!}
+              onResponse={handleVerbalResponse}
+              onPhaseComplete={() =>
+                handlePhaseComplete("verbal-check" as LessonPhase)
+              }
+            />
+          )}
+
+        {/* Legacy Phase 3: Conversational Feedback Loop */}
+        {currentPhase === ("conversation-feedback" as LessonPhase) &&
+          !lesson?.content && (
+            <ConversationFeedbackPhase
+              lesson={lesson!}
+              initialEvaluation={initialResponse?.evaluation}
+              onPhaseComplete={() =>
+                handlePhaseComplete("conversation-feedback" as LessonPhase)
+              }
+            />
+          )}
+
+        {/* Legacy Phase 4: Text Reveal + Vocabulary Marking */}
+        {currentPhase === ("text-reveal" as LessonPhase) &&
+          !lesson?.content && (
+            <TextRevealPhase
+              lesson={lesson!}
+              onWordRating={handleWordRating}
+              vocabularyRatings={vocabularyRatings}
+              onPhaseComplete={() =>
+                handlePhaseComplete("text-reveal" as LessonPhase)
+              }
+            />
+          )}
+
+        {/* Legacy Phase 5: Interactive Exercises */}
+        {currentPhase === ("interactive-exercises" as LessonPhase) &&
+          !lesson?.content && (
+            <InteractiveExercisesPhase
+              lesson={lesson!}
+              onExerciseAttempt={handleExerciseAttempt}
+              onPhaseComplete={() =>
+                handlePhaseComplete("interactive-exercises" as LessonPhase)
+              }
+            />
+          )}
+
+        {/* Legacy Phase 6: Final Verbal Assessment */}
+        {currentPhase === ("final-assessment" as LessonPhase) &&
+          !lesson?.content && (
+            <FinalAssessmentPhase
+              lesson={lesson!}
+              onResponse={handleFinalResponse}
+              onPhaseComplete={() =>
+                handlePhaseComplete("final-assessment" as LessonPhase)
+              }
+            />
+          )}
       </main>
     </div>
   );

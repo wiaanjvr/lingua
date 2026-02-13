@@ -1,7 +1,7 @@
 /**
  * Seed script to populate user's initial French vocabulary
  * Seeds known words based on placement test level:
- * - A1: 50 words, A2: 200 words, B1: 300 words, B2: 500 words, C1: 750 words
+ * - A0: 0 words, A1: 100 words, A2: 500 words, B1+: 1000 words (max available)
  *
  * Run automatically after placement test completion
  */
@@ -13,15 +13,16 @@ import { ProficiencyLevel } from "@/types";
 /**
  * Level to word count allocation
  * Based on placement test results, users get this many known words
+ * Aligned with PROFICIENCY_THRESHOLDS in proficiency-calculator.ts
  */
 export const LEVEL_WORD_ALLOCATION: Record<ProficiencyLevel, number> = {
   A0: 0, // Complete beginners start with no known words
-  A1: 50,
-  A2: 200,
-  B1: 300,
-  B2: 500,
-  C1: 750,
-  C2: 1000,
+  A1: 100, // Matches A1 threshold
+  A2: 500, // Matches A2 threshold
+  B1: 1000, // Matches B1 threshold (capped to available words)
+  B2: 1000, // Limited by common-french-words.json (1000 words max)
+  C1: 1000, // Limited by common-french-words.json (1000 words max)
+  C2: 1000, // Limited by common-french-words.json (1000 words max)
 };
 
 /**

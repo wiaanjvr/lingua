@@ -21,7 +21,7 @@ export async function login(formData: FormData) {
     return { error: "Password is required" };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -38,6 +38,21 @@ export async function login(formData: FormData) {
       };
     }
     return { error: error.message };
+  }
+
+  // Check if user needs onboarding
+  if (data.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("interests")
+      .eq("id", data.user.id)
+      .single();
+
+    const needsOnboarding =
+      !profile || !profile.interests || profile.interests.length === 0;
+
+    revalidatePath("/", "layout");
+    redirect(needsOnboarding ? "/onboarding" : "/dashboard");
   }
 
   revalidatePath("/", "layout");
@@ -204,9 +219,9 @@ export async function updateProfile(formData: FormData) {
     full_name: formData.get("full_name") as string,
     target_language: formData.get("target_language") as string,
     native_language: formData.get("native_language") as string,
-    proficiency_level: formData.get("proficiency_level") as string,
     updated_at: new Date().toISOString(),
   };
+  // Note: proficiency_level is not included - it can only be changed via placement test
 
   const { error } = await supabase.from("profiles").upsert(updates);
 

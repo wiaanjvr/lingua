@@ -1,13 +1,23 @@
 /**
- * Lesson Types - Core types for the 6-phase comprehension lesson flow
+ * Lesson Types - Core types for the 10-phase comprehensible input lesson flow
  *
  * Lesson Flow:
- * 1. Audio-only comprehension (multiple listens)
- * 2. Verbal comprehension check #1 (user describes what they heard)
- * 3. Conversational feedback loop (guided conversation with hints)
- * 4. Text reveal + vocabulary marking (highlight new words, user rates knowledge)
- * 5. Interactive exercises (comprehension, grammar, vocabulary games)
- * 6. Final verbal assessment (record summary, get feedback)
+ * 1. Spaced Retrieval Warmup - Quick recall of previous review items
+ * 2. Prediction Stage - Keywords + predict story content
+ * 3. Audio Text - Listen to the story (audio only)
+ * 4. First Recall Prompt - Rough spoken summary without transcript
+ * 5. Transcript with Highlights - See text with vocabulary marked
+ * 6. Guided Noticing - Infer meaning of new words from context
+ * 7. Micro Drills - Sentence reconstruction, paraphrase, constrained output
+ * 8. Shadowing Stage - Repeat audio for pronunciation practice
+ * 9. Second Recall Prompt - Retell story using target vocabulary
+ * 10. Progress Reflection - Metacognitive reflection on improvement
+ *
+ * Pedagogical Principles:
+ * - 95% comprehensible input (known/review vocabulary)
+ * - 3-5 new words per lesson maximum
+ * - Active recall + spaced repetition integration
+ * - Measurable improvement tracking
  */
 
 import { WordStatus, WordRating, ProficiencyLevel } from "./index";
@@ -15,14 +25,186 @@ import { WordStatus, WordRating, ProficiencyLevel } from "./index";
 // ===== LESSON PHASES =====
 
 export type LessonPhase =
-  | "audio-comprehension" // Phase 1: Listen without text
-  | "verbal-check" // Phase 2: Describe what you heard
-  | "conversation-feedback" // Phase 3: Guided conversation
-  | "text-reveal" // Phase 4: See text + mark vocabulary
-  | "interactive-exercises" // Phase 5: Practice activities
-  | "final-assessment"; // Phase 6: Final verbal summary
+  | "spaced-retrieval-warmup" // Phase 1: Quick recall prompts
+  | "prediction-stage" // Phase 2: Keywords + prediction
+  | "audio-text" // Phase 3: Listen to story
+  | "first-recall" // Phase 4: Spoken summary without text
+  | "transcript-reveal" // Phase 5: See text with highlights
+  | "guided-noticing" // Phase 6: Infer word meanings
+  | "micro-drills" // Phase 7: Practice exercises
+  | "shadowing" // Phase 8: Pronunciation practice
+  | "second-recall" // Phase 9: Retell with vocabulary
+  | "progress-reflection"; // Phase 10: Metacognitive reflection
 
-// ===== LESSON CONTENT =====
+// ===== LESSON PHASES ORDER =====
+
+export const LESSON_PHASE_ORDER: LessonPhase[] = [
+  "spaced-retrieval-warmup",
+  "prediction-stage",
+  "audio-text",
+  "first-recall",
+  "transcript-reveal",
+  "guided-noticing",
+  "micro-drills",
+  "shadowing",
+  "second-recall",
+  "progress-reflection",
+];
+
+// ===== VOCABULARY CONTEXT =====
+
+export interface LessonVocabularyContext {
+  targetLanguage: string;
+  cefrLevel: ProficiencyLevel;
+  knownVocabList: string[]; // Words learner reliably knows
+  reviewVocabList: string[]; // Words due for spaced repetition
+  newVocabTarget: string[]; // 3-5 new words for this lesson
+  maxSentenceLength: number;
+  previousReviewItems: string[]; // From prior lessons, due for warmup
+}
+
+// ===== PHASE 1: SPACED RETRIEVAL WARMUP =====
+
+export interface RetrievalPrompt {
+  id: string;
+  type: "comprehension" | "production";
+  prompt: string; // The question/cue
+  targetWord: string; // Word being recalled
+  expectedResponse?: string; // For production prompts
+}
+
+export interface SpacedRetrievalWarmup {
+  prompts: RetrievalPrompt[]; // 3 ultra-short prompts
+}
+
+// ===== PHASE 2: PREDICTION STAGE =====
+
+export interface PredictionStage {
+  keywords: string[]; // 3 keywords, at least 1 new word
+  predictionPrompt: string; // "What do you think the story will be about?"
+}
+
+// ===== PHASE 3: AUDIO TEXT =====
+
+export interface AudioText {
+  storyText: string; // Full story (1-5 sentences)
+  audioUrl: string;
+  sentenceCount: number;
+  wordCount: number;
+  knownWordPercentage: number; // Should be ~95%
+}
+
+// ===== PHASE 4: FIRST RECALL PROMPT =====
+
+export interface FirstRecallPrompt {
+  instruction: string;
+  encouragement: string; // "It's okay if you only caught part of it"
+}
+
+// ===== PHASE 5: TRANSCRIPT WITH HIGHLIGHTS =====
+
+export interface HighlightedWord {
+  word: string;
+  lemma: string;
+  startIndex: number;
+  endIndex: number;
+  highlightType: "new" | "review";
+  translation?: string;
+}
+
+export interface TranscriptWithHighlights {
+  storyText: string;
+  highlightedWords: HighlightedWord[];
+}
+
+// ===== PHASE 6: GUIDED NOTICING =====
+
+export interface GuidedNoticingItem {
+  word: string;
+  contextSentence: string; // Sentence from story where word appears
+  inferencePrompt: string; // "What do you think X means based on the sentence?"
+  meaning: string; // Concise meaning
+  microExample: string; // Additional example sentence
+}
+
+export interface GuidedNoticing {
+  items: GuidedNoticingItem[]; // One per new word
+}
+
+// ===== PHASE 7: MICRO DRILLS =====
+
+export interface SentenceReconstructionDrill {
+  type: "reconstruction";
+  originalSentence: string;
+  scrambledWords: string[];
+  hint?: string;
+}
+
+export interface ParaphraseDrill {
+  type: "paraphrase";
+  originalSentence: string;
+  instruction: string;
+  sampleAnswer?: string;
+}
+
+export interface ConstrainedOutputDrill {
+  type: "constrained-output";
+  instruction: string;
+  requiredWords: string[]; // At least 2 new vocab words required
+  context?: string;
+  sampleAnswer?: string;
+}
+
+export type MicroDrill =
+  | SentenceReconstructionDrill
+  | ParaphraseDrill
+  | ConstrainedOutputDrill;
+
+export interface MicroDrills {
+  drills: MicroDrill[];
+}
+
+// ===== PHASE 8: SHADOWING STAGE =====
+
+export interface ShadowingStage {
+  audioUrl: string;
+  instruction: string;
+  focusPoints: string[]; // Specific pronunciation points to focus on
+}
+
+// ===== PHASE 9: SECOND RECALL PROMPT =====
+
+export interface SecondRecallPrompt {
+  instruction: string;
+  requiredNewWords: string[]; // At least 2 new vocab words
+  requiredReviewWords: string[]; // At least 1 review word
+}
+
+// ===== PHASE 10: PROGRESS REFLECTION =====
+
+export interface ProgressReflection {
+  questions: string[];
+  // "What did you understand better the second time?"
+  // "Which word felt easier?"
+  // "What was still difficult?"
+}
+
+// ===== COMPLETE LESSON STRUCTURE =====
+
+export interface LessonContent {
+  spacedRetrievalWarmup: SpacedRetrievalWarmup;
+  predictionStage: PredictionStage;
+  audioText: AudioText;
+  firstRecallPrompt: FirstRecallPrompt;
+  transcriptWithHighlights: TranscriptWithHighlights;
+  guidedNoticing: GuidedNoticing;
+  microDrills: MicroDrills;
+  shadowingStage: ShadowingStage;
+  secondRecallPrompt: SecondRecallPrompt;
+  progressReflection: ProgressReflection;
+}
+
+// ===== LEGACY LESSON CONTENT (for migration) =====
 
 export interface LessonWord {
   word: string;
@@ -40,7 +222,11 @@ export interface Lesson {
   id: string;
   userId: string;
 
-  // Content
+  // New structured content (10-phase lesson)
+  content?: LessonContent;
+  vocabularyContext?: LessonVocabularyContext;
+
+  // Legacy content (for backward compatibility)
   targetText: string; // The French (or target language) text
   translation: string; // English translation for reference
   audioUrl?: string; // TTS or recorded audio URL
@@ -79,6 +265,9 @@ export interface LessonGenerationParams {
   reviewWordPriority: boolean; // Prioritize words due for review
   topicPreference?: string;
   grammarFocus?: string[];
+  // New parameters for enhanced lesson generation
+  maxNewWords?: number; // Maximum 3-5 new words
+  maxSentenceLength?: number; // CEFR-appropriate sentence length
 }
 
 // ===== COMPREHENSION EVALUATION =====
@@ -87,7 +276,7 @@ export interface ComprehensionResponse {
   id: string;
   lessonId: string;
   userId: string;
-  phase: "verbal-check" | "final-assessment";
+  phase: "first-recall" | "second-recall"; // Updated phase names
 
   // User's response
   audioBlob?: Blob;
@@ -139,7 +328,13 @@ export interface ConversationTurn {
   audioUrl?: string;
 
   // For assistant turns
-  questionType?: "comprehension" | "clarification" | "vocabulary" | "expansion";
+  questionType?:
+    | "comprehension"
+    | "clarification"
+    | "vocabulary"
+    | "expansion"
+    | "scenario"
+    | "wrap-up";
   vocabularyFocus?: string[]; // Words we're trying to teach in this turn
 
   timestamp: string;
@@ -229,27 +424,66 @@ export interface VocabularyRating {
 
 // ===== LESSON SESSION STATE =====
 
+export interface RetrievalWarmupState {
+  completedPrompts: string[]; // IDs of completed prompts
+  responses: Record<string, string>; // promptId -> user response
+}
+
+export interface PredictionStageState {
+  userPrediction?: string;
+}
+
+export interface AudioTextState {
+  listenCount: number;
+  totalListenTime: number; // In seconds
+}
+
+export interface RecallState {
+  audioUrl?: string;
+  transcript?: string;
+  attemptCount: number;
+}
+
+export interface GuidedNoticingState {
+  completedWords: string[];
+  inferences: Record<string, string>; // word -> user's inference
+}
+
+export interface MicroDrillsState {
+  completedDrills: number[];
+  attempts: Record<number, { response: string; correct: boolean }>;
+}
+
+export interface ShadowingState {
+  repeatCount: number;
+}
+
+export interface ReflectionState {
+  responses: Record<string, string>; // question -> response
+}
+
 export interface LessonSessionState {
   lesson: Lesson;
   currentPhase: LessonPhase;
 
-  // Phase 1 state
+  // Phase states for new 10-phase flow
+  retrievalWarmup: RetrievalWarmupState;
+  predictionStage: PredictionStageState;
+  audioText: AudioTextState;
+  firstRecall: RecallState;
+  guidedNoticing: GuidedNoticingState;
+  microDrills: MicroDrillsState;
+  shadowing: ShadowingState;
+  secondRecall: RecallState;
+  reflection: ReflectionState;
+
+  // Legacy phase states (for backward compatibility)
   listenCount: number;
-
-  // Phase 2 state
   initialResponse?: ComprehensionResponse;
-
-  // Phase 3 state
   conversation?: ConversationSession;
-
-  // Phase 4 state
   vocabularyRatings: VocabularyRating[];
   revealedText: boolean;
-
-  // Phase 5 state
   exerciseSession?: ExerciseSession;
-
-  // Phase 6 state
   finalResponse?: ComprehensionResponse;
 
   // Overall progress
@@ -268,6 +502,10 @@ export interface GenerateLessonRequest {
   topic?: string;
   wordCountTarget?: number;
   prioritizeReview?: boolean;
+  // New parameters
+  knownVocab?: string[];
+  reviewVocab?: string[];
+  previousReviewItems?: string[];
 }
 
 export interface GenerateLessonResponse {
@@ -281,7 +519,7 @@ export interface GenerateLessonResponse {
 
 export interface EvaluateComprehensionRequest {
   lessonId: string;
-  phase: "verbal-check" | "final-assessment";
+  phase: "first-recall" | "second-recall";
   audioUrl?: string;
   transcript?: string;
 }

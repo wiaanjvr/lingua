@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Lesson, LessonPhase } from "@/types/lesson";
+import { Lesson, LessonPhase, LESSON_PHASE_ORDER } from "@/types/lesson";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -13,6 +13,13 @@ import {
   Eye,
   Brain,
   GraduationCap,
+  RefreshCw,
+  Sparkles,
+  FileText,
+  Lightbulb,
+  Target,
+  Mic,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +34,58 @@ const PHASE_CONFIG: Record<
   LessonPhase,
   { icon: React.ElementType; label: string; color: string }
 > = {
+  // New 10-phase structure
+  "spaced-retrieval-warmup": {
+    icon: RefreshCw,
+    label: "Warmup",
+    color: "text-cyan-500",
+  },
+  "prediction-stage": {
+    icon: Sparkles,
+    label: "Predict",
+    color: "text-yellow-500",
+  },
+  "audio-text": {
+    icon: Headphones,
+    label: "Listen",
+    color: "text-primary",
+  },
+  "first-recall": {
+    icon: MessageCircle,
+    label: "Recall",
+    color: "text-blue-500",
+  },
+  "transcript-reveal": {
+    icon: FileText,
+    label: "Read",
+    color: "text-emerald-500",
+  },
+  "guided-noticing": {
+    icon: Lightbulb,
+    label: "Notice",
+    color: "text-orange-500",
+  },
+  "micro-drills": {
+    icon: Target,
+    label: "Drills",
+    color: "text-red-500",
+  },
+  shadowing: {
+    icon: Mic,
+    label: "Shadow",
+    color: "text-pink-500",
+  },
+  "second-recall": {
+    icon: MessagesSquare,
+    label: "Retell",
+    color: "text-indigo-500",
+  },
+  "progress-reflection": {
+    icon: TrendingUp,
+    label: "Reflect",
+    color: "text-purple-500",
+  },
+  // Legacy 6-phase structure
   "audio-comprehension": {
     icon: Headphones,
     label: "Listen",
@@ -59,7 +118,8 @@ const PHASE_CONFIG: Record<
   },
 };
 
-const PHASE_ORDER: LessonPhase[] = [
+// Legacy phase order
+const LEGACY_PHASE_ORDER: LessonPhase[] = [
   "audio-comprehension",
   "verbal-check",
   "conversation-feedback",
@@ -74,9 +134,11 @@ export function LessonHeader({
   progress,
   onExit,
 }: LessonHeaderProps) {
-  const currentIndex = PHASE_ORDER.indexOf(currentPhase);
+  // Determine which phase order to use based on lesson structure
+  const phaseOrder = lesson.content ? LESSON_PHASE_ORDER : LEGACY_PHASE_ORDER;
+  const currentIndex = phaseOrder.indexOf(currentPhase);
   const config = PHASE_CONFIG[currentPhase];
-  const Icon = config.icon;
+  const Icon = config?.icon || Brain;
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -103,9 +165,9 @@ export function LessonHeader({
 
         {/* Phase Indicators */}
         <div className="flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-4 pb-3 overflow-x-auto">
-          {PHASE_ORDER.map((phase, index) => {
+          {phaseOrder.map((phase, index) => {
             const phaseConfig = PHASE_CONFIG[phase];
-            const PhaseIcon = phaseConfig.icon;
+            const PhaseIcon = phaseConfig?.icon || Brain;
             const isActive = index === currentIndex;
             const isCompleted = index < currentIndex;
 

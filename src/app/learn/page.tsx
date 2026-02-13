@@ -36,7 +36,7 @@ export default function LearnPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/auth/login");
+        router.replace("/auth/login");
         return;
       }
 

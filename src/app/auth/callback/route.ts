@@ -34,27 +34,41 @@ export async function GET(request: Request) {
       error: exchangeError?.message,
     });
 
-    if (!exchangeError) {
+    if (!exchangeError && data.user) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
+      // Check if user needs onboarding (new user or incomplete onboarding)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("interests")
+        .eq("id", data.user.id)
+        .single();
+
+      // If no profile or no interests, send to onboarding
+      const needsOnboarding =
+        !profile || !profile.interests || profile.interests.length === 0;
+      const redirectPath = needsOnboarding ? "/onboarding" : next;
+
       if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${redirectPath}`);
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
+        return NextResponse.redirect(`https://${forwardedHost}${redirectPath}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${redirectPath}`);
       }
     }
 
-    console.error("Code exchange error:", exchangeError.message);
-    const errorParams = new URLSearchParams({
-      error: "code_exchange_failed",
-      description: exchangeError.message,
-    });
-    return NextResponse.redirect(
-      `${origin}/auth/auth-code-error?${errorParams}`,
-    );
+    if (exchangeError) {
+      console.error("Code exchange error:", exchangeError.message);
+      const errorParams = new URLSearchParams({
+        error: "code_exchange_failed",
+        description: exchangeError.message,
+      });
+      return NextResponse.redirect(
+        `${origin}/auth/auth-code-error?${errorParams}`,
+      );
+    }
   }
 
   // No code provided

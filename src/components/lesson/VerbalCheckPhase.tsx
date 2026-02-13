@@ -18,8 +18,18 @@ import {
   Lightbulb,
   CheckCircle2,
   Loader2,
+  AlertCircle,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface TranscriptionFeedback {
+  isValid: boolean;
+  isSilence: boolean;
+  isRelevant: boolean;
+  englishWords: Array<{ english: string; translation: string }>;
+  message?: string;
+}
 
 interface VerbalCheckPhaseProps {
   lesson: Lesson;
@@ -38,6 +48,8 @@ export function VerbalCheckPhase({
   const [transcript, setTranscript] = useState<string>("");
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<TranscriptionFeedback | null>(null);
+  const [acknowledgedFeedback, setAcknowledgedFeedback] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -62,7 +74,7 @@ export function VerbalCheckPhase({
         // Stop all tracks
         stream.getTracks().forEach((track) => track.stop());
 
-        // Simulate transcription (in production, use Whisper API)
+        // Transcribe and analyze audio
         await transcribeAudio(blob);
       };
 
@@ -83,12 +95,18 @@ export function VerbalCheckPhase({
 
   const transcribeAudio = async (blob: Blob) => {
     setIsTranscribing(true);
+    setFeedback(null);
+    setAcknowledgedFeedback(false);
 
     try {
-      // Send to Whisper API for transcription
+      // Send to Whisper API for transcription and analysis
       const formData = new FormData();
       formData.append("audio", blob);
       formData.append("language", lesson.language || "fr");
+      formData.append(
+        "questionContext",
+        "What is happening in the audio? Describe what you heard.",
+      );
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -101,6 +119,7 @@ export function VerbalCheckPhase({
 
       const data = await response.json();
       setTranscript(data.text || "");
+      setFeedback(data.feedback || null);
     } catch (error) {
       console.error("Transcription error:", error);
       setTranscript("[Transcription failed - please try again]");
@@ -117,10 +136,18 @@ export function VerbalCheckPhase({
     }
     setTranscript("");
     setHasSubmitted(false);
+    setFeedback(null);
+    setAcknowledgedFeedback(false);
   };
 
   const handleSubmit = () => {
     if (!audioBlob) return;
+
+    // Check if feedback requires re-recording
+    if (feedback && !feedback.isValid && !acknowledgedFeedback) {
+      setAcknowledgedFeedback(true);
+      return;
+    }
 
     const response: ComprehensionResponse = {
       id: `response-${Date.now()}`,
@@ -136,6 +163,14 @@ export function VerbalCheckPhase({
     setHasSubmitted(true);
     onResponse(response);
   };
+
+  // Check if we need to force re-recording
+  const needsReRecord = feedback && !feedback.isValid && !acknowledgedFeedback;
+  const canSubmit =
+    audioBlob &&
+    !isTranscribing &&
+    !hasSubmitted &&
+    (!feedback || feedback.isValid || acknowledgedFeedback);
 
   return (
     <div className="space-y-6">
@@ -246,7 +281,7 @@ export function VerbalCheckPhase({
                 <div className="flex items-center justify-center gap-2 py-4">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="text-sm text-muted-foreground">
-                    Transcribing...
+                    Analyzing your response...
                   </span>
                 </div>
               ) : (
@@ -260,6 +295,71 @@ export function VerbalCheckPhase({
                 )
               )}
 
+              {/* Feedback - Silence or Irrelevant */}
+              {feedback && !feedback.isValid && (
+                <Card className="border-orange-500/50 bg-orange-500/5">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
+                      <div className="space-y-2 flex-1">
+                        <p className="font-medium text-orange-700 dark:text-orange-400">
+                          {feedback.isSilence
+                            ? "No Speech Detected"
+                            : "Please Try Again"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {feedback.message}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Remember: Try to answer completely in French, but it's
+                          okay to use some English words if needed.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Feedback - English Words Detected */}
+              {feedback &&
+                feedback.isValid &&
+                feedback.englishWords.length > 0 && (
+                  <Card className="border-blue-500/50 bg-blue-500/5">
+                    <CardContent className="pt-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-5 w-5 text-blue-500" />
+                          <p className="font-medium text-blue-700 dark:text-blue-400">
+                            {feedback.message ||
+                              "Great effort! Here are some French words to help you:"}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          {feedback.englishWords.map((word, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-white/50 dark:bg-black/20 rounded-lg px-4 py-3"
+                            >
+                              <span className="text-sm font-medium">
+                                {word.english}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                →
+                              </span>
+                              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                {word.translation}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Try using these French words in your next response!
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
               {/* Actions */}
               <div className="flex gap-2">
                 <Button
@@ -269,18 +369,20 @@ export function VerbalCheckPhase({
                   disabled={hasSubmitted}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Re-record
+                  {needsReRecord ? "Try Again" : "Re-record"}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   className="flex-1"
-                  disabled={hasSubmitted || isTranscribing}
+                  disabled={!canSubmit}
                 >
                   {hasSubmitted ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       Submitted
                     </>
+                  ) : needsReRecord ? (
+                    "Record Again"
                   ) : (
                     "Submit Response"
                   )}
@@ -295,9 +397,11 @@ export function VerbalCheckPhase({
       <div className="bg-muted/50 rounded-lg p-4">
         <h3 className="font-medium mb-2">Tips for your response:</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
+          <li>• Try to answer completely in French</li>
+          <li>
+            • Using a few English words is okay - we'll help you learn them
+          </li>
           <li>• Don't worry about perfect grammar or pronunciation</li>
-          <li>• Mix languages if needed - comprehension matters most</li>
-          <li>• Mention any words or phrases you recognized</li>
           <li>• Describe the overall situation or feeling</li>
         </ul>
       </div>

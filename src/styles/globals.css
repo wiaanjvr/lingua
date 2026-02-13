@@ -4,35 +4,39 @@
 
 @layer base {
   :root {
-    /* Luxury Light Theme - Inspired by Ferrari Luce & Apple */
-    --background: 0 0% 99%;
-    --foreground: 0 0% 8%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
+    /* Oxford Library Theme - Rich wood and leather */
+    --background: 25 25% 20%;
+    --foreground: 40 30% 92%;
+    --muted: 25 22% 28%;
+    --muted-foreground: 40 20% 75%;
+    --popover: 25 25% 22%;
+    --popover-foreground: 40 30% 92%;
+    --card: 28 20% 24%;
+    --card-foreground: 40 30% 92%;
+    --border: 30 15% 35%;
+    --input: 28 18% 30%;
 
-    /* Premium accent colors */
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --accent: 240 6% 90%;
-    --accent-foreground: 0 0% 10%;
+    /* Premium accent colors - Library accents */
+    --primary: 40 30% 92%;
+    --primary-foreground: 25 25% 18%;
+    --secondary: 25 22% 32%;
+    --secondary-foreground: 40 30% 92%;
+    --accent: 35 25% 35%;
+    --accent-foreground: 40 30% 92%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
-    --ring: 0 0% 10%;
+    --destructive-foreground: 40 30% 92%;
+    --ring: 45 60% 60%;
     --radius: 1rem;
 
-    /* Luxury metallics */
-    --luxury-gold: 45 100% 51%;
-    --luxury-silver: 0 0% 75%;
-    --luxury-bronze: 30 50% 45%;
+    /* Oxford library palette - Wood & leather tones, cream accents */
+    --luxury-cognac: 45 55% 55%;
+    --luxury-cognac-light: 45 50% 65%;
+    --luxury-champagne: 40 40% 75%;
+    --luxury-carbon: 0 0% 15%;
+    --luxury-chrome: 40 20% 85%;
+    --luxury-bronze: 35 45% 50%;
+    --luxury-amber: 45 70% 60%;
 
     /* Success, warning, info */
     --success: 142 71% 45%;
@@ -41,34 +45,38 @@
   }
 
   .dark {
-    /* Luxury Dark Theme - Deep blacks with subtle gradients */
-    --background: 0 0% 6%;
-    --foreground: 0 0% 98%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 98%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
+    /* Oxford Library Dark - Deep mahogany */
+    --background: 25 30% 12%;
+    --foreground: 40 30% 92%;
+    --muted: 25 25% 18%;
+    --muted-foreground: 40 20% 70%;
+    --popover: 25 28% 14%;
+    --popover-foreground: 40 30% 92%;
+    --card: 28 25% 16%;
+    --card-foreground: 40 30% 92%;
+    --border: 30 20% 25%;
+    --input: 28 22% 20%;
 
-    /* Premium accent colors for dark mode */
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 98%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
+    /* Premium accent colors for dark mode - Library tones */
+    --primary: 40 30% 92%;
+    --primary-foreground: 25 30% 12%;
+    --secondary: 25 25% 22%;
+    --secondary-foreground: 40 30% 92%;
+    --accent: 35 30% 25%;
+    --accent-foreground: 40 30% 92%;
 
     --destructive: 0 63% 51%;
-    --destructive-foreground: 0 0% 98%;
-    --ring: 0 0% 85%;
+    --destructive-foreground: 40 30% 92%;
+    --ring: 45 60% 60%;
 
-    /* Luxury metallics for dark */
-    --luxury-gold: 45 100% 60%;
-    --luxury-silver: 0 0% 85%;
-    --luxury-bronze: 30 50% 55%;
+    /* Oxford library palette for dark - Warm accents */
+    --luxury-cognac: 45 60% 50%;
+    --luxury-cognac-light: 45 55% 60%;
+    --luxury-champagne: 40 45% 70%;
+    --luxury-carbon: 0 0% 10%;
+    --luxury-chrome: 40 25% 85%;
+    --luxury-bronze: 35 50% 45%;
+    --luxury-amber: 45 75% 55%;
 
     --success: 142 71% 50%;
     --warning: 38 92% 60%;
@@ -91,51 +99,99 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Apple-inspired smooth scrolling */
+  /* Smooth scrolling with snap */
   html {
     scroll-behavior: smooth;
+  }
+
+  .scroll-snap-container {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 4rem;
+    overflow-y: scroll;
+    height: 100vh;
+  }
+
+  .scroll-snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
   }
 }
 
 @layer utilities {
-  /* Glass morphism effect - iPhone/MacBook inspired */
+  /* Glass morphism effect - Oxford library */
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(60, 45, 35, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(200, 160, 120, 0.15);
   }
 
   .glass-dark {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(35, 25, 20, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(180, 140, 100, 0.2);
   }
 
-  /* Luxury gradients - Ferrari inspired */
+  /* Premium frosted glass */
+  .glass-luxury {
+    background: linear-gradient(
+      135deg,
+      rgba(65, 50, 40, 0.95) 0%,
+      rgba(55, 42, 32, 0.92) 100%
+    );
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(200, 160, 120, 0.18);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(220, 180, 140, 0.15);
+  }
+
+  /* Luxury gradients - Oxford library wood tones */
   .gradient-luxury {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    background: linear-gradient(135deg, #3d2f24 0%, #2d221a 100%);
   }
 
-  .gradient-luxury-gold {
-    background: linear-gradient(135deg, #d4af37 0%, #aa8c2a 100%);
+  .gradient-cognac {
+    background: linear-gradient(135deg, #c89b5a 0%, #a87f48 100%);
   }
 
   .gradient-luxury-subtle {
-    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    background: linear-gradient(135deg, #4a3a2e 0%, #3d2f24 100%);
   }
 
-  /* Premium text gradients */
-  .text-gradient-gold {
-    background: linear-gradient(135deg, #d4af37 0%, #f9d97b 50%, #d4af37 100%);
+  .gradient-champagne {
+    background: linear-gradient(135deg, #d9b882 0%, #c19f6b 100%);
+  }
+
+  /* Ambient lighting gradients - Warm library ambiance */
+  .gradient-ambient-warm {
+    background: linear-gradient(
+      135deg,
+      rgba(200, 155, 90, 0.08) 0%,
+      rgba(168, 127, 72, 0.04) 100%
+    );
+  }
+
+  /* Premium text gradients - Warm cream and gold (NOT brown) */
+  .text-gradient-cognac {
+    background: linear-gradient(135deg, #e8c98f 0%, #f5d9a8 50%, #e8c98f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-champagne {
+    background: linear-gradient(135deg, #f2e5c7 0%, #ffe9b3 50%, #f2e5c7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient-luxury {
-    background: linear-gradient(135deg, #0a0a0a 0%, #4a4a4a 100%);
+    background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -150,7 +206,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Hover effects */
+  /* Hover effects - Automotive premium */
   .hover-lift {
     @apply transition-luxury hover:-translate-y-1 hover:shadow-luxury-lg;
   }
@@ -160,17 +216,129 @@
   }
 
   .hover-glow:hover {
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 40px rgba(200, 155, 90, 0.3);
   }
 
-  /* Card effects */
+  .hover-cognac {
+    @apply transition-luxury;
+  }
+
+  .hover-cognac:hover {
+    box-shadow:
+      0 12px 48px rgba(200, 155, 90, 0.25),
+      0 0 0 1px rgba(200, 155, 90, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* Ambient glow effect */
+  .ambient-glow {
+    position: relative;
+  }
+
+  .ambient-glow::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(200, 155, 90, 0.3),
+      rgba(168, 127, 72, 0.12)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ambient-glow:hover::before {
+    opacity: 1;
+  }
+
+  /* Card effects - Premium automotive styling */
   .card-luxury {
     @apply bg-card border border-border/50 rounded-2xl shadow-luxury backdrop-blur-sm;
+    position: relative;
   }
 
   .card-interactive {
-    @apply card-luxury transition-luxury hover:shadow-luxury-lg hover:border-foreground/10 hover:-translate-y-0.5;
+    @apply card-luxury transition-luxury hover:shadow-luxury-lg;
+    position: relative;
   }
+
+  .card-interactive:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--luxury-cognac) / 0.3);
+    box-shadow: 
+      0 20px 60px rgba(200, 155, 90, 0.2),
+      0 4px 16px rgba(0, 0, 0, 0.3);
+  /* Premium card with cognac accent - Lighter brown with cream text */
+  .card-cognac {
+    @apply card-luxury;
+    background: linear-gradient(
+      135deg,
+      rgba(70, 55, 42, 1) 0%,
+      rgba(60, 48, 38, 1) 100%
+    );
+    border-color: hsl(var(--luxury-cognac) / 0.25);
+  }
+
+  /* Premium text contrast on dark backgrounds */
+  .premium-card-text {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Ensure readable text on all backgrounds */
+  .text-readable-light {
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .text-readable-muted-light {
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Leather texture effect */
+  .leather-texture {
+    position: relative;
+    background-image:
+      radial-gradient(
+        circle at 20% 50%,
+        rgba(0, 0, 0, 0.02) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(0, 0, 0, 0.02) 0%,
+        transparent 50%
+      );
+  }
+}
+
+/* Shimmer animation for premium elements */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 155, 90, 0.12) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
 }
 
 @keyframes blob {
@@ -194,7 +362,7 @@
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-20px) rotate(5deg);
+    transform: translateY(-30px) rotate(3deg);
   }
 }
 
@@ -210,14 +378,30 @@
   }
 }
 
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 8s ease-in-out infinite;
 }
 
 .animate-gradient {
   animation: gradient 8s ease infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
 }
